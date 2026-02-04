@@ -1,0 +1,35 @@
+/* StickyImageBlock.css */
+
+.sticky-container {
+  /* Важливо: контейнер не повинен мати overflow: hidden */
+  position: relative;
+  align-self: flex-start; /* щоб не розтягувався по висоті в flex/grid */
+}
+
+.sticky-block {
+  position: sticky;
+  z-index: 10;
+  
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.sticky-block:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.sticky-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.sticky-content {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  color: #333;
+}

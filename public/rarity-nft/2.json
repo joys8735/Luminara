@@ -1,0 +1,8 @@
+{
+  "name": "Rare NFT",
+  "description": "Rare NFT",
+  "image": "ipfs://QmIMAGE/reare.png",
+  "attributes": [
+    { "trait_type": "Rarity", "value": "Rare" }
+  ]
+}

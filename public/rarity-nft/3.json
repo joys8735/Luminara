@@ -1,0 +1,8 @@
+{
+  "name": "Legend NFT",
+  "description": "Legend NFT",
+  "image": "ipfs://QmIMAGE/Legend.png",
+  "attributes": [
+    { "trait_type": "Rarity", "value": "Legend" }
+  ]
+}

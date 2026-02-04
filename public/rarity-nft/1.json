@@ -1,0 +1,8 @@
+{
+  "name": "Common NFT",
+  "description": "Common  NFT",
+  "image": "https://aqua-clumsy-python-312.mypinata.cloud/ipfs/bafkreicmc63lxtyd46z3okhkj2urcvmcmam5cakkmojbkwsu2xetpdp5vi",
+  "attributes": [
+    { "trait_type": "Rarity", "value": "Common" }
+  ]
+}

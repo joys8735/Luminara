@@ -1,0 +1,2514 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useWallet } from "../context/WalletContext";
+import { toast } from "sonner";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Activity,
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  Coins,
+  Copy,
+  Gift,
+  Info,
+  Percent,
+  Shield,
+  Ticket,
+  Wallet,
+  X,
+  History as HistoryIcon,
+  Loader2,
+  Users,
+  Crown,
+  Star,
+  Award,
+  Zap,
+  Link as LinkIcon,
+  Calendar,
+  TrendingUp,
+  ExternalLink,
+} from "lucide-react";
+
+// Ethers.js v6
+import { ethers } from "ethers";
+
+// Add for chart
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
+
+type PaymentMethod = "USDT" | "USDC" | "BNB";
+type SalePhase = "upcoming" | "live" | "ended";
+type PurchaseStatus = "pending" | "completed" | "failed";
+
+interface Purchase {
+  id: string;
+  date: string;
+  usdAmount: number;
+  paymentCurrency: PaymentMethod;
+  paymentAmount: number;
+  paymentPrice: number;
+  baseTokens: number;
+  bonusTokens: number;
+  totalTokens: number;
+  referralCode?: string;
+  txHash: string;
+  priceImpact: number;
+  isWhitelisted: boolean;
+  status: PurchaseStatus;
+  ticketsEarned?: number;
+  tier?: string;
+}
+
+interface UserStats {
+  totalPurchased: number;
+  totalClaimed: number;
+  ticketsCount: number;
+  referralBonus: number;
+  totalBonusEarned: number;
+  tier: string;
+  bonusPercent: number;
+  referrals: number;
+  claimable: number;
+}
+
+interface ConfirmPurchaseModalProps {
+  open: boolean;
+  purchase: Purchase | null;
+  onClose: () => void;
+}
+
+// Контрактні константи
+const CONTRACT_ADDRESS = "0xE7064A0383771Cef8Cb9B6f5Ef984cD5282D6b65";
+const TOKEN_ADDRESS = "0x44a7217B6583265ba9579453cc91F110FdA71698";
+const USDT_ADDRESS = "0x5d842eE37D3C5D3F34BFaB7824d6dC9149d83438";
+const CHAINLINK_PRICE_FEED = "0x0567F2323251f0Aab15c8dFb1967E4E8A7D42aeE"; // BNB/USD на BSC
+
+// Налаштування дат (можна змінити)
+const SALE_START_DATE = new Date("2026-01-10T02:46:00"); // 15 січня 2026, 10:00
+const SALE_END_DATE = new Date("2026-02-15T23:59:59"); // 15 лютого 2026, 23:59
+const CLAIM_START_DATE = new Date("2026-01-20T00:00:00"); // 20 лютого 2026, 00:00
+
+// ABI для контракту TokenSaleOptimized
+const CONTRACT_ABI = [
+  // Конструктор та події
+  {"inputs":[{"internalType":"address","name":"_token","type":"address"},{"internalType":"address","name":"_usdt","type":"address"},{"internalType":"address","name":"_priceFeed","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"string","name":"bonusType","type":"string"}],"name":"BonusAwarded","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"usdAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"baseTokens","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"totalBonus","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"ticketsEarned","type":"uint256"},{"indexed":false,"internalType":"string","name":"payment","type":"string"},{"indexed":true,"internalType":"address","name":"referrer","type":"address"}],"name":"Bought","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Claimed","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"address","name":"referrer","type":"address"}],"name":"ReferralRegistered","type":"event"},
+  
+  // View functions
+  {"inputs":[],"name":"BASE_BONUS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"DIAMOND_BONUS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"DIAMOND_MIN_USD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"REFERRAL_BONUS_PCT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TIER1_BONUS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TIER1_MIN_USD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TIER2_BONUS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TIER2_MIN_USD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TIER3_BONUS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TIER3_MIN_USD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  
+  // User data functions
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"claimed","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"claimActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getClaimable","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getLatestBnbPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserBonusPercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserStats","outputs":[{"internalType":"uint256","name":"totalPurchased","type":"uint256"},{"internalType":"uint256","name":"totalClaimed","type":"uint256"},{"internalType":"uint256","name":"ticketsCount","type":"uint256"},{"internalType":"uint256","name":"referralBonusAmount","type":"uint256"},{"internalType":"uint256","name":"totalBonusEarnedAmount","type":"uint256"},{"internalType":"string","name":"tier","type":"string"},{"internalType":"uint256","name":"bonusPercent","type":"uint256"},{"internalType":"uint256","name":"referrals","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getUserTier","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},
+  
+  // State variables
+  {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"purchased","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referralBonus","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referralsCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"referrerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"saleActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"tickets","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"token","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"tokenPriceUsd","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"totalBonusEarned","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"usdt","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"bnbPriceUsd","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  
+  // Write functions
+  {"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"newPrice","type":"uint256"}],"name":"setBnbPrice","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"newPrice","type":"uint256"}],"name":"setTokenPrice","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"bool","name":"status","type":"bool"}],"name":"toggleClaim","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"bool","name":"status","type":"bool"}],"name":"toggleSale","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address payable","name":"to","type":"address"}],"name":"withdrawBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"withdrawUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"tokenAddr","type":"address"},{"internalType":"address","name":"to","type":"address"}],"name":"emergencyWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  
+  // Основні функції для користувачів
+  {"inputs":[{"internalType":"address","name":"referrer","type":"address"}],"name":"buyWithBNB","outputs":[],"stateMutability":"payable","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"usdtAmount","type":"uint256"},{"internalType":"address","name":"referrer","type":"address"}],"name":"buyWithUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"claim","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  
+  // Функції для реферальних кодів (додали)
+  {"inputs":[{"internalType":"string","name":"nickname","type":"string"}],"name":"setReferralNickname","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"string","name":"nickname","type":"string"}],"name":"getAddressByNickname","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getNicknameByAddress","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}
+];
+
+// USDT ABI
+const USDT_ABI = [
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function balanceOf(address account) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function allowance(address owner, address spender) view returns (uint256)"
+];
+
+// Helper functions
+const fmtSpaceInt = (n: number) => {
+  const num = Number(n || 0);
+  if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2)}B`;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
+  return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
+
+const fmtMoney = (n: number) => `$${fmtSpaceInt(n)}`;
+
+const formatTokenAmount = (weiAmount: bigint, decimals: number = 18): number => {
+  try {
+    return parseFloat(ethers.formatUnits(weiAmount, decimals));
+  } catch {
+    return 0;
+  }
+};
+
+const formatUsdAmount = (weiAmount: bigint): number => {
+  try {
+    return parseFloat(ethers.formatUnits(weiAmount, 18));
+  } catch {
+    return 0;
+  }
+};
+
+const generateTxHash = () => {
+  const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let out = "";
+  for (let i = 0; i < 44; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
+};
+
+const formatDateTime = (d: Date) =>
+  d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+// Додаємо функцію форматування дати з годинами
+const formatDateWithTime = (d: Date) => 
+  d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+// Додаємо функцію для BSC explorer
+const getBscScanUrl = (txHash: string) => {
+  return `https://testnet.bscscan.com/tx/${txHash}`;
+};
+
+// Countdown hook
+const useCountdown = (target: Date) => {
+  const [now, setNow] = useState<Date>(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const diff = Math.max(0, target.getTime() - now.getTime());
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / (24 * 3600));
+  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { days, hours, minutes, seconds, totalSeconds };
+};
+
+// ================== Final Confirm Modal ==================
+const ConfirmPurchaseModal: React.FC<ConfirmPurchaseModalProps> = ({
+  open,
+  purchase,
+  onClose,
+}) => {
+  if (!open || !purchase) return null;
+
+  const {
+    usdAmount,
+    paymentCurrency,
+    paymentAmount,
+    baseTokens,
+    bonusTokens,
+    totalTokens,
+    txHash,
+    status,
+    referralCode,
+    ticketsEarned,
+    tier,
+  } = purchase;
+
+  const statusColor =
+    status === "completed"
+      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/40"
+      : status === "pending"
+      ? "text-[#facc15] bg-[#facc15]/10 border-[#facc15]/40"
+      : "text-red-400 bg-red-500/10 border-red-500/40";
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+  whileHover={{ y: -2 }}
+  transition={{ type: "spring", stiffness: 300 }}
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="relative w-full max-w-lg rounded-2xl border border-[#1f1f1f] bg-[#050816] p-6 overflow-hidden"
+            initial={{ opacity: 0, scale: 0.96, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 20 }}
+          >
+            <div className="pointer-events-none absolute -inset-0.5 rounded-2xl opacity-30 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+            <div className="relative z-10 space-y-4 text-xs">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#050816] px-3 py-1 mb-2">
+                    <Activity className="w-3 h-3 text-[#3b82f6]" />
+                    <span className="text-[11px] text-[#a0a0a0]">
+                      Token sale purchase summary
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-[#e0e0e0]">
+                    Purchase {status === "completed" ? "completed" : status === "pending" ? "pending" : "failed"}
+                  </h3>
+                  <p className="mt-1 text-[11px] text-[#707070]">
+                    {status === "completed" 
+                      ? "Receipt preview for your contribution. You can use this info later when claiming tokens."
+                      : status === "pending"
+                      ? "Your purchase is being processed. Please wait for confirmation."
+                      : "Purchase failed. Please try again."}
+                  </p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="rounded-full bg-[#111827] p-2 text-[#707070] hover:text-[#e0e0e0]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Status & tx */}
+              <div className="flex items-center justify-between gap-3 text-[11px]">
+                <div
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 ${statusColor}`}
+                >
+                  <Shield className="w-3 h-3" />
+                  <span className="font-semibold">
+                    {status === "completed"
+                      ? "Completed"
+                      : status === "pending"
+                      ? "Pending"
+                      : "Failed"}
+                  </span>
+                </div>
+                <div className="text-[#707070] text-right">
+                  Tx hash:{" "}
+                  <a 
+                    href={getBscScanUrl(txHash)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#e0e0e0] font-mono text-[10px] hover:text-[#3b82f6] flex items-center gap-1"
+                  >
+                    {txHash.slice(0, 6)}...{txHash.slice(-6)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Tier & Tickets */}
+              {(tier || ticketsEarned) && (
+                <div className="grid grid-cols-2 gap-3 text-[11px]">
+                  {tier && (
+                    <div className="bg-[#070b14] border border-[#1f1f1f] rounded-xl p-3">
+                      <div className="text-[#707070] mb-1">New Tier</div>
+                      <div className="text-sm font-semibold text-[#facc15]">
+                        {tier}
+                      </div>
+                      <div className="text-[10px] text-[#707070] mt-1">
+                        Unlocked with this purchase
+                      </div>
+                    </div>
+                  )}
+                  {ticketsEarned && ticketsEarned > 0 && (
+                    <div className="bg-[#070b14] border border-[#1f1f1f] rounded-xl p-3">
+                      <div className="text-[#707070] mb-1">Tickets Earned</div>
+                      <div className="text-sm font-semibold text-[#a855f7]">
+                        +{ticketsEarned} tickets
+                      </div>
+                      <div className="text-[10px] text-[#707070] mt-1">
+                        1 ticket per 500 SVT
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Amounts */}
+              <div className="grid grid-cols-2 gap-3 text-[11px]">
+                <div className="bg-[#070b14] border border-[#1f1f1f] rounded-xl p-3">
+                  <div className="text-[#707070] mb-1">Paid</div>
+                  <div className="text-sm font-semibold text-[#e0e0e0]">
+                    {fmtMoney(usdAmount)}
+                  </div>
+                  <div className="text-[10px] text-[#707070] mt-1">
+                    {paymentAmount.toFixed(2)} {paymentCurrency}
+                  </div>
+                </div>
+                <div className="bg-[#070b14] border border-[#1f1f1f] rounded-xl p-3">
+                  <div className="text-[#707070] mb-1">
+                    Tokens (base + bonus)
+                  </div>
+                  <div className="text-sm font-semibold text-[#e0e0e0]">
+                    {fmtSpaceInt(baseTokens)} +{" "}
+                    <span className="text-[#22c1c3]">
+                      {fmtSpaceInt(bonusTokens)}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#707070] mt-1">
+                    Total:{" "}
+                    <span className="text-[#e0e0e0] font-semibold">
+                      {fmtSpaceInt(totalTokens)} SVT
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Referral */}
+              {referralCode && (
+                <div className="bg-[#070b14] border border-[#1f1f1f] rounded-xl p-3 text-[11px] space-y-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Gift className="w-3 h-3 text-[#facc15]" />
+                    <span className="text-[#e0e0e0] font-semibold">
+                      Referral Applied
+                    </span>
+                  </div>
+                  <div className="text-[#707070]">
+                    Referral code:{" "}
+                    <span className="text-[#e0e0e0] font-mono">
+                      {referralCode}
+                    </span>
+                  </div>
+                  <div className="text-[#707070]">
+                    You and your referrer will receive bonus tokens.
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="mt-1 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2563eb] transition-all"
+              >
+                {status === "completed" ? "Great! Close" : 
+                 status === "pending" ? "Waiting..." : "Try Again"}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ========= Claim Status Card =========
+interface ClaimSectionProps {
+  stats: UserStats;
+  onClaim: () => Promise<void>;
+  onBackToSale: () => void;
+  isClaiming: boolean;
+  claimStartDate: Date;
+}
+
+const ClaimSection: React.FC<ClaimSectionProps> = ({
+  stats,
+  onClaim,
+  onBackToSale,
+  isClaiming,
+  claimStartDate,
+}) => {
+  const { 
+    totalPurchased, 
+    totalClaimed, 
+    claimable,
+    ticketsCount,
+    referralBonus,
+    totalBonusEarned,
+    tier,
+    bonusPercent,
+    referrals
+  } = stats;
+
+  const now = new Date();
+  const claimAvailable = now >= claimStartDate;
+
+  const tierColors: Record<string, string> = {
+    "Diamond": "text-[#b9f2ff]",
+    "Gold": "text-[#FFD700]",
+    "Silver": "text-[#C0C0C0]",
+    "Bronze": "text-[#CD7F32]",
+    "Base": "text-[#e0e0e0]"
+  };
+
+  return (
+    <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+      <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_60%)]" />
+      <div className="relative z-10 space-y-4 text-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Coins className="w-4 h-4 text-[#3b82f6]" />
+            <div>
+              <h2 className="text-sm font-semibold text-[#e0e0e0]">
+                Claim your tokens
+              </h2>
+              <p className="text-[11px] text-[#707070]">
+                {claimAvailable 
+                  ? "Claim is now available! You can claim your purchased tokens."
+                  : `Claim will be available on ${formatDateWithTime(claimStartDate)}`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onBackToSale}
+            className="inline-flex items-center gap-1 rounded-xl border border-[#1f1f1f] bg-[#050816] px-3 py-1 text-[11px] text-[#a0a0a0] hover:border-[#3b82f6]/60 transition-all"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Back to sale
+          </button>
+        </div>
+
+        {/* Claim Status */}
+        {!claimAvailable && (
+          <div className="bg-[#0f172a] border border-[#334155] rounded-xl p-3 text-[11px]">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="w-4 h-4 text-[#facc15]" />
+              <span className="text-[#e0e0e0] font-semibold">Claim Schedule</span>
+            </div>
+            <div className="text-[#94a3b8]">
+              Claim start: <span className="text-[#e0e0e0]">{formatDateWithTime(claimStartDate)}</span>
+            </div>
+            <div className="text-[10px] text-[#64748b] mt-1">
+              Tokens are locked until the claim period begins. Check back later.
+            </div>
+          </div>
+        )}
+
+        {/* User Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="text-[11px] text-[#707070] mb-1">
+              Total purchased
+            </div>
+            <div className="text-sm font-semibold text-[#e0e0e0]">
+              {fmtSpaceInt(totalPurchased)} SVT
+            </div>
+          </div>
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="text-[11px] text-[#707070] mb-1">
+              Already claimed
+            </div>
+            <div className="text-sm font-semibold text-[#e0e0e0]">
+              {fmtSpaceInt(totalClaimed)} SVT
+            </div>
+          </div>
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="text-[11px] text-[#707070] mb-1">
+              Available to claim
+            </div>
+            <div className="text-sm font-semibold text-[#22c1c3]">
+              {fmtSpaceInt(claimable)} SVT
+            </div>
+          </div>
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="text-[11px] text-[#707070] mb-1">
+              Your Tier
+            </div>
+            <div className={`text-sm font-semibold ${tierColors[tier] || "text-[#e0e0e0]"}`}>
+              {tier} (+{bonusPercent}%)
+            </div>
+          </div>
+        </div>
+
+        {/* Bonus Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Ticket className="w-3 h-3 text-[#a855f7]" />
+              <div className="text-[11px] text-[#707070]">Tickets</div>
+            </div>
+            <div className="text-sm font-semibold text-[#a855f7]">
+              {ticketsCount}
+            </div>
+          </div>
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Gift className="w-3 h-3 text-[#facc15]" />
+              <div className="text-[11px] text-[#707070]">Referral Bonus</div>
+            </div>
+            <div className="text-sm font-semibold text-[#facc15]">
+              {fmtSpaceInt(referralBonus)} SVT
+            </div>
+          </div>
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Award className="w-3 h-3 text-[#22c1c3]" />
+              <div className="text-[11px] text-[#707070]">Total Bonuses</div>
+            </div>
+            <div className="text-sm font-semibold text-[#22c1c3]">
+              {fmtSpaceInt(totalBonusEarned)} SVT
+            </div>
+          </div>
+        </div>
+
+        <button
+          disabled={claimable <= 0 || isClaiming || !claimAvailable}
+          onClick={onClaim}
+          className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+            claimable <= 0 || !claimAvailable
+              ? "bg-[#050816] border border-[#1f1f1f] text-[#707070] cursor-not-allowed"
+              : "bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+          }`}
+        >
+          {isClaiming ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Claiming...
+            </>
+          ) : !claimAvailable ? (
+            <>
+              <Calendar className="w-4 h-4" />
+              Claim starts {formatDateWithTime(claimStartDate)}
+            </>
+          ) : claimable <= 0 ? (
+            "Nothing to claim"
+          ) : (
+            <>
+              Claim {fmtSpaceInt(claimable)} SVT
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
+
+        <div className="text-[10px] text-[#707070]">
+          {claimAvailable 
+            ? "Your purchased tokens are now available for claim. Referral bonuses are added to your claimable balance."
+            : `Tokens will be available for claim starting ${formatDateWithTime(claimStartDate)}.`}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =================== Main Page ===================
+const TOKEN_LOGOS: Record<PaymentMethod, string> = {
+  USDT: "/icons/usdt.png",
+  USDC: "/icons/usdc.png",
+  BNB: "/icons/bnb.png",
+};
+
+const TIER_INFO = [
+  { name: "Base", min: 0, bonus: 5, color: "text-[#e0e0e0]", icon: Star },
+  { name: "Bronze", min: 100, bonus: 7, color: "text-[#CD7F32]", icon: Award },
+  { name: "Silver", min: 300, bonus: 10, color: "text-[#C0C0C0]", icon: Zap },
+  { name: "Gold", min: 600, bonus: 15, color: "text-[#FFD700]", icon: Crown },
+  { name: "Diamond", min: 1000, bonus: 20, color: "text-[#b9f2ff]", icon: Crown },
+];
+
+// Investment chart component
+interface InvestmentChartProps {
+  purchases: Purchase[];
+  tokenPrice: number;
+}
+
+const InvestmentChart: React.FC<InvestmentChartProps> = ({ purchases, tokenPrice }) => {
+  const [timeRange, setTimeRange] = useState<"1d" | "7d" | "30d" | "all">("all");
+  
+  // Generate chart data from purchases
+  const chartData = useMemo(() => {
+    if (purchases.length === 0) {
+      return [
+        { date: 'Start', value: 0, tokens: 0 },
+        { date: 'Now', value: 0, tokens: 0 }
+      ];
+    }
+
+    // Sort purchases by date
+    const sortedPurchases = [...purchases].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    // Calculate cumulative values
+    let cumulativeValue = 0;
+    let cumulativeTokens = 0;
+    
+    const data = sortedPurchases.map((purchase, index) => {
+      cumulativeValue += purchase.usdAmount;
+      cumulativeTokens += purchase.totalTokens;
+      
+      const date = new Date(purchase.date);
+      const formattedDate = date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit'
+      });
+      
+      return {
+        date: formattedDate,
+        value: cumulativeValue,
+        tokens: cumulativeTokens,
+        purchaseAmount: purchase.usdAmount
+      };
+    });
+
+    // Add starting point
+    if (data.length > 0) {
+      data.unshift({
+        date: 'Start',
+        value: 0,
+        tokens: 0,
+        purchaseAmount: 0
+      });
+    }
+
+    return data;
+  }, [purchases]);
+
+  return (
+    <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+      <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+      <div className="relative z-10 space-y-4 text-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-[#3b82f6]" />
+            <h3 className="text-sm font-semibold text-[#e0e0e0]">
+              Investment Growth
+            </h3>
+          </div>
+          <div className="flex gap-1">
+            {["1d", "7d", "30d", "all"].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range as any)}
+                className={`px-2 py-1 text-[10px] rounded-lg ${
+                  timeRange === range
+                    ? "bg-[#3b82f6] text-white"
+                    : "bg-[#050816] text-[#707070] hover:text-[#e0e0e0]"
+                }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis 
+                dataKey="date" 
+                stroke="#707070"
+                fontSize={10}
+              />
+              <YAxis 
+                stroke="#707070"
+                fontSize={10}
+                tickFormatter={(value) => `$${value}`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#050816',
+                  border: '1px solid #1f1f1f',
+                  borderRadius: '8px',
+                }}
+                formatter={(value: any, name: string) => {
+                  if (name === 'value') return [`$${Number(value).toFixed(2)}`, 'Total Investment'];
+                  if (name === 'tokens') return [`${fmtSpaceInt(value)}`, 'Total Tokens'];
+                  return [value, name];
+                }}
+                labelStyle={{ color: '#e0e0e0' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#3b82f6"
+                fill="url(#colorInvestment)"
+                strokeWidth={2}
+              />
+              <defs>
+                <linearGradient id="colorInvestment" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="text-[#707070] mb-1">Total Investment</div>
+            <div className="text-sm font-semibold text-[#e0e0e0]">
+              ${chartData.length > 0 ? chartData[chartData.length - 1].value.toFixed(2) : "0.00"}
+            </div>
+          </div>
+          <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+            <div className="text-[#707070] mb-1">Total Tokens</div>
+            <div className="text-sm font-semibold text-[#22c1c3]">
+              {chartData.length > 0 ? fmtSpaceInt(chartData[chartData.length - 1].tokens) : "0"} SVT
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TokenSale: React.FC = () => {
+  const { connected, walletType, publicKey, provider, signer } = useWallet();
+  const [view, setView] = useState<"sale" | "claim">("sale");
+  const [isBuying, setIsBuying] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [saleContract, setSaleContract] = useState<ethers.Contract | null>(null);
+  const [usdtContract, setUsdtContract] = useState<ethers.Contract | null>(null);
+  const [contractSaleActive, setContractSaleActive] = useState(false);
+  const [contractClaimActive, setContractClaimActive] = useState(false);
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalPurchased: 0,
+    totalClaimed: 0,
+    ticketsCount: 0,
+    referralBonus: 0,
+    totalBonusEarned: 0,
+    tier: "Base",
+    bonusPercent: 5,
+    referrals: 0,
+    claimable: 0
+  });
+  const [bnbPrice, setBnbPrice] = useState<number>(898.12);
+  const [tokenPrice, setTokenPrice] = useState<number>(0.02);
+  const [usdtDecimals, setUsdtDecimals] = useState<number>(6);
+  const [contractConstants, setContractConstants] = useState<{
+    tier1MinUsd: number;
+    tier2MinUsd: number;
+    tier3MinUsd: number;
+    diamondMinUsd: number;
+    baseBonus: number;
+    tier1Bonus: number;
+    tier2Bonus: number;
+    tier3Bonus: number;
+    diamondBonus: number;
+    referralBonusPct: number;
+  } | null>(null);
+  const [showCreateReferral, setShowCreateReferral] = useState(false);
+  const [referralLink, setReferralLink] = useState("");
+  const [referralNickname, setReferralNickname] = useState("");
+  const [isSettingNickname, setIsSettingNickname] = useState(false);
+  const [currentReferralNickname, setCurrentReferralNickname] = useState("");
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Використовуємо задані дати
+  const saleStart = SALE_START_DATE;
+  const saleEnd = SALE_END_DATE;
+  const claimStart = CLAIM_START_DATE;
+  
+  const countdownToStart = useCountdown(saleStart);
+  const countdownToEnd = useCountdown(saleEnd);
+
+  const salePhase: SalePhase = useMemo(() => {
+    const now = new Date();
+    if (now < saleStart) return "upcoming";
+    if (now > saleEnd) return "ended";
+    return "live";
+  }, [saleStart, saleEnd, countdownToStart.totalSeconds, countdownToEnd.totalSeconds]);
+
+  const [amountUsd, setAmountUsd] = useState<string>("");
+  const [paymentCurrency, setPaymentCurrency] = useState<PaymentMethod>("USDT");
+  const [referralCode, setReferralCode] = useState<string>("");
+
+  const walletAddress = publicKey || "";
+  const [purchases, setPurchases] = useState<Purchase[]>(() => {
+    if (!walletAddress) return [];
+    const saved = localStorage.getItem(`tokenSalePurchases_${walletAddress}`);
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [lastPurchase, setLastPurchase] = useState<Purchase | null>(null);
+
+  // Завантаження даних з контракту при зміні гаманця
+  useEffect(() => {
+    if (!walletAddress) return;
+    
+    const savedPurchases = localStorage.getItem(`tokenSalePurchases_${walletAddress}`);
+    if (savedPurchases) {
+      setPurchases(JSON.parse(savedPurchases));
+    } else {
+      setPurchases([]);
+    }
+  }, [walletAddress]);
+
+  // Збереження покупок в localStorage за адресою гаманця
+  useEffect(() => {
+    if (!walletAddress) return;
+    localStorage.setItem(`tokenSalePurchases_${walletAddress}`, JSON.stringify(purchases));
+  }, [purchases, walletAddress]);
+
+  // Функція для отримання ціни BNB з API як fallback
+  const fetchBnbPriceFromAPI = async (): Promise<number> => {
+    try {
+      const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT');
+      const data = await response.json();
+      return parseFloat(data.price);
+    } catch (error) {
+      console.error("Error fetching BNB price from API:", error);
+      return 898.12; // Fallback price
+    }
+  };
+
+  // Ініціалізація контрактів та отримання даних
+  useEffect(() => {
+    if (!provider || !walletAddress || walletType !== "metamask") {
+      setIsLoadingData(false);
+      return;
+    }
+
+    const initContracts = async () => {
+      setIsLoadingData(true);
+      try {
+        console.log("Initializing contracts...");
+        
+        const network = await provider.getNetwork();
+        console.log("Network:", network.name, "Chain ID:", network.chainId);
+
+        // Sale contract
+        const saleContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          CONTRACT_ABI,
+          signer || provider
+        );
+        setSaleContract(saleContract);
+
+        // USDT contract
+        const usdtContract = new ethers.Contract(
+          USDT_ADDRESS,
+          USDT_ABI,
+          signer || provider
+        );
+        setUsdtContract(usdtContract);
+
+        // Get USDT decimals
+        try {
+          const decimals = await usdtContract.decimals();
+          setUsdtDecimals(Number(decimals));
+        } catch (error) {
+          console.log("Using default USDT decimals (6)");
+        }
+
+        // Get contract states - з інтервалом для оновлення цін
+        const updateContractData = async () => {
+          try {
+            const [isSaleActive, isClaimActive, tokenPriceFromContract] = await Promise.all([
+              saleContract.saleActive(),
+              saleContract.claimActive(),
+              saleContract.tokenPriceUsd()
+            ]);
+
+            setContractSaleActive(isSaleActive);
+            setContractClaimActive(isClaimActive);
+            setTokenPrice(formatUsdAmount(tokenPriceFromContract));
+            
+            // Оновлення ціни BNB з контракту
+            try {
+              const bnbPriceFromContract = await saleContract.getLatestBnbPrice();
+              const formattedPrice = formatUsdAmount(bnbPriceFromContract);
+              setBnbPrice(formattedPrice);
+            } catch (bnbError) {
+              console.error("Error getting BNB price from contract:", bnbError);
+              // Якщо контракт не повертає ціну, пробуємо API
+              const apiPrice = await fetchBnbPriceFromAPI();
+              setBnbPrice(apiPrice);
+            }
+            
+            // Оновлення статистики користувача
+            await loadUserStats(saleContract);
+            
+          } catch (error) {
+            console.error("Error updating contract data:", error);
+          } finally {
+            setIsLoadingData(false);
+          }
+        };
+
+        // Первинне завантаження
+        await updateContractData();
+        
+        // Оновлення даних кожні 30 секунд
+        const intervalId = setInterval(updateContractData, 30000);
+
+        // Load contract constants
+        await loadContractConstants(saleContract);
+
+        // Get user referral nickname
+        try {
+          const nickname = await saleContract.getNicknameByAddress(walletAddress);
+          if (nickname && nickname.trim() !== "") {
+            setCurrentReferralNickname(nickname);
+          }
+        } catch (error) {
+          console.log("No referral nickname set");
+        }
+
+        return () => clearInterval(intervalId);
+
+      } catch (error: any) {
+        console.error("Error initializing contracts:", error);
+        toast.error(`Failed to connect: ${error.message}`);
+        setIsLoadingData(false);
+      }
+    };
+
+    initContracts();
+  }, [provider, walletAddress, signer, walletType]);
+
+  const loadContractConstants = async (contract: ethers.Contract) => {
+    try {
+      const [
+        tier1MinUsd,
+        tier2MinUsd,
+        tier3MinUsd,
+        diamondMinUsd,
+        baseBonus,
+        tier1Bonus,
+        tier2Bonus,
+        tier3Bonus,
+        diamondBonus,
+        referralBonusPct
+      ] = await Promise.all([
+        contract.TIER1_MIN_USD(),
+        contract.TIER2_MIN_USD(),
+        contract.TIER3_MIN_USD(),
+        contract.DIAMOND_MIN_USD(),
+        contract.BASE_BONUS(),
+        contract.TIER1_BONUS(),
+        contract.TIER2_BONUS(),
+        contract.TIER3_BONUS(),
+        contract.DIAMOND_BONUS(),
+        contract.REFERRAL_BONUS_PCT()
+      ]);
+
+      setContractConstants({
+        tier1MinUsd: formatUsdAmount(tier1MinUsd),
+        tier2MinUsd: formatUsdAmount(tier2MinUsd),
+        tier3MinUsd: formatUsdAmount(tier3MinUsd),
+        diamondMinUsd: formatUsdAmount(diamondMinUsd),
+        baseBonus: Number(baseBonus),
+        tier1Bonus: Number(tier1Bonus),
+        tier2Bonus: Number(tier2Bonus),
+        tier3Bonus: Number(tier3Bonus),
+        diamondBonus: Number(diamondBonus),
+        referralBonusPct: Number(referralBonusPct)
+      });
+
+    } catch (error) {
+      console.error("Error loading contract constants:", error);
+    }
+  };
+
+  const loadUserStats = async (contract?: ethers.Contract) => {
+    const saleContractToUse = contract || saleContract;
+    if (!saleContractToUse || !walletAddress) {
+      // Якщо контракт не завантажений, використовуємо локальні дані
+      const totalPurchased = purchases.reduce((sum, p) => sum + p.totalTokens, 0);
+      const totalInvested = purchases.reduce((sum, p) => sum + p.usdAmount, 0);
+      
+      // Визначаємо tier на основі інвестицій
+      let tier = "Base";
+      let bonusPercent = 5;
+      
+      if (contractConstants) {
+        if (totalInvested >= contractConstants.diamondMinUsd) {
+          tier = "Diamond";
+          bonusPercent = contractConstants.diamondBonus;
+        } else if (totalInvested >= contractConstants.tier3MinUsd) {
+          tier = "Gold";
+          bonusPercent = contractConstants.tier3Bonus;
+        } else if (totalInvested >= contractConstants.tier2MinUsd) {
+          tier = "Silver";
+          bonusPercent = contractConstants.tier2Bonus;
+        } else if (totalInvested >= contractConstants.tier1MinUsd) {
+          tier = "Bronze";
+          bonusPercent = contractConstants.tier1Bonus;
+        } else {
+          bonusPercent = contractConstants.baseBonus;
+        }
+      }
+      
+      const userStats: UserStats = {
+        totalPurchased,
+        totalClaimed: 0,
+        ticketsCount: Math.floor(totalPurchased / 500),
+        referralBonus: 0,
+        totalBonusEarned: 0,
+        tier,
+        bonusPercent,
+        referrals: 0,
+        claimable: 0
+      };
+
+      setUserStats(userStats);
+      return;
+    }
+
+    try {
+      const stats = await saleContractToUse.getUserStats(walletAddress);
+      const claimable = await saleContractToUse.getClaimable(walletAddress);
+      const bonusPercent = await saleContractToUse.getUserBonusPercent(walletAddress);
+
+      const userStats: UserStats = {
+        totalPurchased: formatTokenAmount(stats[0]),
+        totalClaimed: formatTokenAmount(stats[1]),
+        ticketsCount: Number(stats[2]),
+        referralBonus: formatTokenAmount(stats[3]),
+        totalBonusEarned: formatTokenAmount(stats[4]),
+        tier: stats[5],
+        bonusPercent: Number(bonusPercent),
+        referrals: Number(stats[7]),
+        claimable: formatTokenAmount(claimable)
+      };
+
+      setUserStats(userStats);
+
+    } catch (error: any) {
+      console.error("Error loading user stats:", error);
+      
+      // Fallback на локальні дані
+      const totalPurchased = purchases.reduce((sum, p) => sum + p.totalTokens, 0);
+      const totalInvested = purchases.reduce((sum, p) => sum + p.usdAmount, 0);
+      
+      let tier = "Base";
+      let bonusPercent = 5;
+      
+      if (contractConstants) {
+        if (totalInvested >= contractConstants.diamondMinUsd) {
+          tier = "Diamond";
+          bonusPercent = contractConstants.diamondBonus;
+        } else if (totalInvested >= contractConstants.tier3MinUsd) {
+          tier = "Gold";
+          bonusPercent = contractConstants.tier3Bonus;
+        } else if (totalInvested >= contractConstants.tier2MinUsd) {
+          tier = "Silver";
+          bonusPercent = contractConstants.tier2Bonus;
+        } else if (totalInvested >= contractConstants.tier1MinUsd) {
+          tier = "Bronze";
+          bonusPercent = contractConstants.tier1Bonus;
+        } else {
+          bonusPercent = contractConstants.baseBonus;
+        }
+      }
+      
+      const userStats: UserStats = {
+        totalPurchased,
+        totalClaimed: 0,
+        ticketsCount: Math.floor(totalPurchased / 500),
+        referralBonus: 0,
+        totalBonusEarned: 0,
+        tier,
+        bonusPercent,
+        referrals: 0,
+        claimable: 0
+      };
+
+      setUserStats(userStats);
+    }
+  };
+
+  // Розрахунок бонусу на основі поточного тіра
+  const calculateBonusPercent = (): number => {
+    if (!contractConstants) return userStats.bonusPercent;
+    
+    const totalInvested = purchases.reduce((sum, p) => sum + p.usdAmount, 0);
+    
+    if (totalInvested >= contractConstants.diamondMinUsd) return contractConstants.diamondBonus;
+    if (totalInvested >= contractConstants.tier3MinUsd) return contractConstants.tier3Bonus;
+    if (totalInvested >= contractConstants.tier2MinUsd) return contractConstants.tier2Bonus;
+    if (totalInvested >= contractConstants.tier1MinUsd) return contractConstants.tier1Bonus;
+    
+    return contractConstants.baseBonus;
+  };
+
+  const parsedUsd = Number(amountUsd) || 0;
+  
+  // Отримуємо актуальний бонус
+  const currentBonusPercent = calculateBonusPercent();
+  
+  const calculateTokenAmount = (usdAmount: number): number => {
+    return usdAmount / tokenPrice;
+  };
+
+  const baseTokensPreview = parsedUsd > 0 ? calculateTokenAmount(parsedUsd) : 0;
+  const bonusTokensPreview = baseTokensPreview * (currentBonusPercent / 100);
+  const totalTokensPreview = baseTokensPreview + bonusTokensPreview;
+  const ticketsPreview = Math.floor(baseTokensPreview / 500);
+
+  const paymentAmount = paymentCurrency === 'BNB' 
+    ? (parsedUsd > 0 && bnbPrice > 0 ? parsedUsd / bnbPrice : 0)
+    : parsedUsd;
+
+  const handleApproveUSDT = async (amount: number) => {
+    if (!usdtContract || !signer) {
+      toast.error("Wallet not connected");
+      return false;
+    }
+
+    try {
+      const amountWei = ethers.parseUnits(amount.toString(), usdtDecimals);
+      
+      const currentAllowance = await usdtContract.allowance(walletAddress, CONTRACT_ADDRESS);
+      if (currentAllowance >= amountWei) {
+        return true;
+      }
+      
+      const tx = await usdtContract.approve(CONTRACT_ADDRESS, amountWei);
+      await tx.wait();
+      toast.success("USDT approved successfully");
+      return true;
+    } catch (error: any) {
+      console.error("Approval error:", error);
+      toast.error(`Approval failed: ${error.message}`);
+      return false;
+    }
+  };
+
+  // Функція для розшифрування реферального коду
+  const decodeReferralCode = async (code: string): Promise<string> => {
+    if (!code || code.trim() === "") {
+      return ethers.ZeroAddress;
+    }
+
+    try {
+      // Якщо це адреса
+      if (ethers.isAddress(code)) {
+        return ethers.getAddress(code);
+      }
+
+      // Якщо це нікнейм, шукаємо в контракті
+      if (saleContract && code.length >= 3 && code.length <= 20) {
+        try {
+          const address = await saleContract.getAddressByNickname(code);
+          if (address !== ethers.ZeroAddress) {
+            return address;
+          }
+        } catch (error) {
+          console.log("Nickname not found in contract");
+        }
+      }
+
+      // Спробуємо в localStorage (для legacy підтримки)
+      const savedLinks = localStorage.getItem('referralLinks') || '{}';
+      const links = JSON.parse(savedLinks);
+      
+      if (links[code.toLowerCase()]) {
+        return ethers.getAddress(links[code.toLowerCase()]);
+      }
+
+      toast.warning("Referral code not found. Please check the code.");
+      return ethers.ZeroAddress;
+    } catch (error) {
+      console.error("Error decoding referral code:", error);
+      toast.error("Invalid referral code format");
+      return ethers.ZeroAddress;
+    }
+  };
+
+  // Створення реферального нікнейму
+  const handleSetReferralNickname = async () => {
+    if (!saleContract || !signer || !walletAddress) {
+      toast.error("Wallet not connected");
+      return;
+    }
+
+    if (!referralNickname.trim()) {
+      toast.error("Enter a nickname");
+      return;
+    }
+
+    if (referralNickname.length < 3 || referralNickname.length > 20) {
+      toast.error("Nickname must be 3-20 characters");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(referralNickname)) {
+      toast.error("Only letters, numbers and underscores allowed");
+      return;
+    }
+
+    setIsSettingNickname(true);
+
+    try {
+      // Перевірка чи nickname вільний
+      try {
+        const existingAddress = await saleContract.getAddressByNickname(referralNickname);
+        if (existingAddress !== ethers.ZeroAddress) {
+          toast.error("This nickname is already taken");
+          setIsSettingNickname(false);
+          return;
+        }
+      } catch (error) {
+        // Якщо функція не існує в контракті, пропускаємо перевірку
+        console.log("getAddressByNickname function not available");
+      }
+
+      const tx = await saleContract.setReferralNickname(referralNickname);
+      await tx.wait();
+      
+      setCurrentReferralNickname(referralNickname);
+      setReferralNickname("");
+      toast.success(`Nickname "${referralNickname}" set successfully!`);
+      
+      // Оновлюємо реферальне посилання
+      createReferralLink();
+      
+    } catch (error: any) {
+      console.error("Error setting nickname:", error);
+      
+      if (error.message.includes("already taken")) {
+        toast.error("This nickname is already taken");
+      } else if (error.message.includes("user rejected")) {
+        toast.error("Transaction rejected");
+      } else if (error.message.includes("require(false)")) {
+        toast.error("Nickname validation failed. Please try a different one.");
+      } else {
+        toast.error(`Failed to set nickname: ${error.message}`);
+      }
+    } finally {
+      setIsSettingNickname(false);
+    }
+  };
+
+  // Створити реферальне посилання
+  const createReferralLink = () => {
+    if (!walletAddress) {
+      toast.error("Connect wallet first");
+      return;
+    }
+    
+    let code = walletAddress.slice(2, 10).toLowerCase();
+    
+    // Якщо є нікнейм, використовуємо його
+    if (currentReferralNickname) {
+      code = currentReferralNickname;
+    }
+    
+    const link = `${window.location.origin}${window.location.pathname}?ref=${code}`;
+    setReferralLink(link);
+    setShowCreateReferral(true);
+    
+    navigator.clipboard.writeText(link);
+    toast.success("Referral link copied to clipboard!");
+  };
+
+  const handleBuy = async () => {
+    if (!connected || !publicKey) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (walletType !== "metamask") {
+      toast.error("Token sale only works with MetaMask (EVM wallet)");
+      return;
+    }
+
+    if (!saleContract || !signer) {
+      toast.error("Contract not initialized");
+      return;
+    }
+
+    if (!contractSaleActive) {
+      toast.error("Sale is not active on contract");
+      return;
+    }
+
+    if (salePhase !== "live") {
+      toast.error(salePhase === "upcoming" ? "Sale hasn't started yet" : "Sale has ended");
+      return;
+    }
+
+    if (!parsedUsd || parsedUsd <= 0) {
+      toast.error("Enter an amount in USD");
+      return;
+    }
+
+    if (parsedUsd < 50) {
+      toast.error("Minimum purchase is $50");
+      return;
+    }
+
+    setIsBuying(true);
+
+    try {
+      const referrerAddress = await decodeReferralCode(referralCode);
+      
+      console.log("Buying with details:", {
+        parsedUsd,
+        paymentCurrency,
+        referrerAddress,
+        walletAddress
+      });
+
+      if (paymentCurrency === "BNB") {
+        const bnbAmount = paymentAmount;
+        const bnbAmountWei = ethers.parseEther(bnbAmount.toString());
+        
+        const balance = await provider!.getBalance(walletAddress);
+        if (balance < bnbAmountWei) {
+          toast.error(`Insufficient BNB balance. You need ${bnbAmount.toFixed(4)} BNB`);
+          setIsBuying(false);
+          return;
+        }
+        
+        try {
+          await saleContract.buyWithBNB.estimateGas(referrerAddress, {
+            value: bnbAmountWei
+          });
+        } catch (simError: any) {
+          console.error("Simulation error:", simError);
+          if (simError.message.includes("Sale inactive")) {
+            toast.error("Sale is not active");
+          } else if (simError.message.includes("Zero BNB")) {
+            toast.error("Amount is too small");
+          } else {
+            toast.error(`Transaction will fail: ${simError.reason || simError.message}`);
+          }
+          setIsBuying(false);
+          return;
+        }
+        
+        const tx = await saleContract.buyWithBNB(referrerAddress, {
+          value: bnbAmountWei,
+          gasLimit: 300000
+        });
+        
+        toast.info("Transaction submitted, waiting for confirmation...");
+        const receipt = await tx.wait();
+
+      } else {
+        const usdtAmountWei = ethers.parseUnits(parsedUsd.toString(), usdtDecimals);
+        
+        const balance = await usdtContract!.balanceOf(walletAddress);
+        if (balance < usdtAmountWei) {
+          toast.error(`Insufficient USDT balance. You need ${parsedUsd} USDT`);
+          setIsBuying(false);
+          return;
+        }
+        
+        const approved = await handleApproveUSDT(parsedUsd);
+        if (!approved) {
+          setIsBuying(false);
+          return;
+        }
+        
+        try {
+          await saleContract.buyWithUSDT.estimateGas(usdtAmountWei, referrerAddress);
+        } catch (simError: any) {
+          console.error("Simulation error:", simError);
+          toast.error(`Transaction will fail: ${simError.reason || simError.message}`);
+          setIsBuying(false);
+          return;
+        }
+        
+        const tx = await saleContract.buyWithUSDT(usdtAmountWei, referrerAddress, {
+          gasLimit: 300000
+        });
+        
+        toast.info("Transaction submitted, waiting for confirmation...");
+        const receipt = await tx.wait();
+      }
+
+      await loadUserStats();
+      
+      let newTier = userStats.tier;
+      try {
+        newTier = await saleContract.getUserTier(walletAddress);
+      } catch (error) {
+        console.error("Error getting tier:", error);
+      }
+
+      const purchase: Purchase = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        date: new Date().toISOString(),
+        usdAmount: parsedUsd,
+        paymentCurrency,
+        paymentAmount,
+        paymentPrice: paymentCurrency === 'BNB' ? bnbPrice : 1,
+        baseTokens: baseTokensPreview,
+        bonusTokens: bonusTokensPreview,
+        totalTokens: totalTokensPreview,
+        referralCode: referralCode || undefined,
+        txHash: generateTxHash(),
+        priceImpact: 0,
+        isWhitelisted: true,
+        status: "completed",
+        ticketsEarned: ticketsPreview,
+        tier: newTier
+      };
+
+      setPurchases(prev => [purchase, ...prev.slice(0, 49)]);
+      setLastPurchase(purchase);
+      setConfirmModalOpen(true);
+      setAmountUsd("");
+      
+      toast.success(`Purchase successful!`);
+
+    } catch (error: any) {
+      console.error("Buy error:", error);
+      
+      let errorMessage = error.reason || error.message;
+      if (error.code === 'ACTION_REJECTED') {
+        errorMessage = "Transaction rejected by user";
+      } else if (error.message.includes("insufficient funds")) {
+        errorMessage = "Insufficient balance";
+      } else if (error.message.includes("Sale inactive")) {
+        errorMessage = "Sale is not active";
+      } else if (error.message.includes("require(false)")) {
+        errorMessage = "Contract validation failed - check your inputs";
+      }
+      
+      toast.error(`Purchase failed: ${errorMessage}`);
+      
+      const failedPurchase: Purchase = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        date: new Date().toISOString(),
+        usdAmount: parsedUsd,
+        paymentCurrency,
+        paymentAmount,
+        paymentPrice: paymentCurrency === 'BNB' ? bnbPrice : 1,
+        baseTokens: baseTokensPreview,
+        bonusTokens: bonusTokensPreview,
+        totalTokens: totalTokensPreview,
+        referralCode: referralCode || undefined,
+        txHash: generateTxHash(),
+        priceImpact: 0,
+        isWhitelisted: true,
+        status: "failed"
+      };
+
+      setLastPurchase(failedPurchase);
+      setConfirmModalOpen(true);
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
+  const handleClaim = async () => {
+    if (!saleContract || !signer) {
+      toast.error("Wallet not connected");
+      return;
+    }
+
+    if (!contractClaimActive) {
+      toast.error("Claim is not active yet");
+      return;
+    }
+
+    if (userStats.claimable <= 0) {
+      toast.error("Nothing to claim");
+      return;
+    }
+
+    setIsClaiming(true);
+
+    try {
+      const tokenContract = new ethers.Contract(
+        TOKEN_ADDRESS,
+        ["function balanceOf(address) view returns (uint256)"],
+        provider
+      );
+      
+      const contractBalance = await tokenContract.balanceOf(CONTRACT_ADDRESS);
+      const contractBalanceFormatted = formatTokenAmount(contractBalance);
+      
+      if (contractBalanceFormatted < userStats.claimable) {
+        toast.error("Contract doesn't have enough tokens for claim");
+        setIsClaiming(false);
+        return;
+      }
+
+      try {
+        await saleContract.claim.estimateGas();
+      } catch (simError: any) {
+        console.error("Claim simulation error:", simError);
+        toast.error(`Claim will fail: ${simError.reason || simError.message}`);
+        setIsClaiming(false);
+        return;
+      }
+
+      const tx = await saleContract.claim({
+        gasLimit: 200000
+      });
+      toast.info("Claim transaction submitted...");
+      await tx.wait();
+
+      await loadUserStats();
+      toast.success(`Successfully claimed ${fmtSpaceInt(userStats.claimable)} SVT`);
+
+    } catch (error: any) {
+      console.error("Claim error:", error);
+      
+      if (error.message.includes("insufficient balance")) {
+        toast.error("Contract doesn't have enough tokens");
+      } else if (error.message.includes("Claim closed")) {
+        toast.error("Claim period is not active");
+      } else if (error.message.includes("Nothing to claim")) {
+        toast.error("No tokens available for claim");
+      } else if (error.message.includes("user rejected")) {
+        toast.error("Transaction rejected by user");
+      } else {
+        toast.error(`Claim failed: ${error.message}`);
+      }
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+
+  const saleStatusLabel = salePhase === "live" 
+    ? "Token sale is live" 
+    : salePhase === "upcoming" 
+    ? "Sale starts soon" 
+    : "Sale has ended";
+
+  const saleStatusColor = salePhase === "live" 
+    ? "text-emerald-400" 
+    : salePhase === "upcoming" 
+    ? "text-[#3b82f6]" 
+    : "text-[#facc15]";
+
+  // Розрахунок прогресу тіру з фіксованими значеннями
+  const calculateTierProgress = () => {
+    if (!contractConstants || isLoadingData) return { progress: 0, nextTier: null, remainingAmount: 0 };
+    
+    const totalInvested = purchases.reduce((sum, p) => sum + p.usdAmount, 0);
+    
+    let nextTier = null;
+    let progress = 0;
+    let remainingAmount = 0;
+    
+    if (totalInvested < contractConstants.tier1MinUsd) {
+      nextTier = TIER_INFO[1]; // Bronze
+      progress = Math.min(100, (totalInvested / contractConstants.tier1MinUsd) * 100);
+      remainingAmount = Math.max(0, contractConstants.tier1MinUsd - totalInvested);
+    } else if (totalInvested < contractConstants.tier2MinUsd) {
+      nextTier = TIER_INFO[2]; // Silver
+      progress = Math.min(100, ((totalInvested - contractConstants.tier1MinUsd) / (contractConstants.tier2MinUsd - contractConstants.tier1MinUsd)) * 100);
+      remainingAmount = Math.max(0, contractConstants.tier2MinUsd - totalInvested);
+    } else if (totalInvested < contractConstants.tier3MinUsd) {
+      nextTier = TIER_INFO[3]; // Gold
+      progress = Math.min(100, ((totalInvested - contractConstants.tier2MinUsd) / (contractConstants.tier3MinUsd - contractConstants.tier2MinUsd)) * 100);
+      remainingAmount = Math.max(0, contractConstants.tier3MinUsd - totalInvested);
+    } else if (totalInvested < contractConstants.diamondMinUsd) {
+      nextTier = TIER_INFO[4]; // Diamond
+      progress = Math.min(100, ((totalInvested - contractConstants.tier3MinUsd) / (contractConstants.diamondMinUsd - contractConstants.tier3MinUsd)) * 100);
+      remainingAmount = Math.max(0, contractConstants.diamondMinUsd - totalInvested);
+    } else {
+      progress = 100;
+    }
+    
+    return { progress, nextTier, remainingAmount };
+  };
+
+  const { progress: tierProgress, nextTier, remainingAmount } = calculateTierProgress();
+
+  // Calculate airdrop boost
+  const airdropBoost = userStats.totalPurchased >= 1000 ? "x4 Diamond" :
+                      userStats.totalPurchased >= 600 ? "x3 Gold" :
+                      userStats.totalPurchased >= 300 ? "x2 Silver" :
+                      userStats.totalPurchased >= 100 ? "x1.5 Bronze" :
+                      "x1 Base";
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <button
+        type="button"
+        onClick={() => window.history.back()}
+        className="inline-flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#050816] px-3 py-1 text-[11px] text-[#a0a0a0] hover:border-[#3b82f6]/70 hover:text-[#e0e0e0] transition-all"
+      >
+        <ArrowLeft className="w-3 h-3 text-[#3b82f6]" />
+        <span>Back</span>
+      </button>
+
+      <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+        <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#050816] px-3 py-1">
+              <Activity className="w-3 h-3 text-[#3b82f6]" />
+              <span className={`text-[11px] ${saleStatusColor}`}>
+                {saleStatusLabel}
+              </span>
+              
+            </div>
+            
+            <h1 className="text-3xl font-semibold text-white leading-tight">
+  Buy SVT early.<br />
+  <span className="text-[#3b82f6]">Earn bonuses + referrals.</span>
+</h1>
+
+<p className="text-sm text-[#a0a0a0] max-w-md">
+  Early participants receive tiered bonuses, referral rewards
+  and priority airdrop eligibility.
+</p>
+
+          </div>
+          
+          <div className="space-y-3 text-xs">
+            {/* Wallet status */}
+            <div className="flex items-center justify-end gap-2">
+              <div className="w-9 h-9 rounded-full bg-[#050816] border border-[#1f1f1f] flex items-center justify-center">
+                <Wallet className="w-4 h-4 text-[#3b82f6]" />
+              </div>
+              <div className="text-right">
+                <div className="text-[11px] text-[#707070]">
+                  Wallet status
+                </div>
+                <div className="text-[11px] text-[#e0e0e0] font-mono">
+                  {connected && walletAddress
+                    ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
+                    : "Not connected"}
+                </div>
+              </div>
+            </div>
+
+            {/* Timer and Dates */}
+            <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl px-3 py-2 space-y-2">
+              {salePhase === "upcoming" ? (
+                <div className="text-[11px]">
+                  <div className="text-[#707070]">Sale starts in:</div>
+                  <div className="text-[#e0e0e0] font-mono">
+                    {countdownToStart.days}d {countdownToStart.hours}h {countdownToStart.minutes}m
+                  </div>
+                  <div className="text-[10px] text-[#707070]">
+                    {formatDateWithTime(saleStart)}
+                  </div>
+                </div>
+              ) : salePhase === "live" ? (
+                <div className="text-[11px]">
+                  <div className="text-[#707070]">Sale ends in:</div>
+                  <div className="text-[#e0e0e0] font-mono">
+                    {countdownToEnd.days}d {countdownToEnd.hours}h {countdownToEnd.minutes}m
+                  </div>
+                  <div className="text-[10px] text-[#707070]">
+                    {formatDateWithTime(saleEnd)}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[11px]">
+                  <div className="text-[#707070]">Sale ended</div>
+                  <div className="text-[#e0e0e0]">Claim starts:</div>
+                  <div className="text-[10px] text-[#facc15]">
+                    {formatDateWithTime(claimStart)}
+                  </div>
+                </div>
+              )}
+              
+              <div className="pt-2 border-t border-[#1f1f1f]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-[#707070]">
+                    Claim starts
+                  </span>
+                  <span className="text-[11px] text-[#e0e0e0]">
+                    {formatDateWithTime(claimStart)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Contract status */}
+            <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl px-3 py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-[#707070]">
+                  Sale status
+                </span>
+                <span className={`text-[11px] ${contractSaleActive ? 'text-emerald-400' : 'text-[#facc15]'}`}>
+                  {contractSaleActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[11px] text-[#707070]">
+                  Claim status
+                </span>
+                <span className={`text-[11px] ${contractClaimActive ? 'text-emerald-400' : 'text-[#707070]'}`}>
+                  {contractClaimActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[11px] text-[#707070]">
+                  Token price
+                </span>
+                <span className="text-[11px] text-emerald-400">
+                  ${tokenPrice.toFixed(3)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[11px] text-[#707070]">
+                  BNB price
+                </span>
+                <span className="text-[11px] text-emerald-400">
+                  ${bnbPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 relative overflow-hidden">
+          <div className="pointer-events-none absolute -inset-0.5 opacity-5 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_70%)]" />
+          <div className="relative z-10">
+            <Coins className="h-5 w-5 text-[#3b82f6] mb-2" />
+            <div className="text-lg font-semibold text-[#e0e0e0]">
+              {isLoadingData ? "Loading..." : fmtSpaceInt(userStats.totalPurchased)} SVT
+            </div>
+            <div className="text-xs text-[#707070]">
+              Your purchased tokens
+            </div>
+            <div className="text-xs text-[#707070]">
+  {userStats.ticketsCount >= 10
+    ? "Eligible for priority airdrop"
+    : `Buy ${10 - userStats.ticketsCount} more to unlock airdrop`}
+</div>
+
+          </div>
+        </div>
+
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 relative overflow-hidden">
+          <div className="pointer-events-none absolute -inset-0.5 opacity-5 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_70%)]" />
+          <div className="relative z-10">
+            <Percent className="h-5 w-5 text-[#3b82f6] mb-2" />
+            <div className="text-lg font-semibold text-[#3b82f6]">
+              {isLoadingData ? "..." : `+${currentBonusPercent}%`}
+            </div>
+            <div className="text-xs text-[#707070]">Current bonus</div>
+          </div>
+        </div>
+
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 relative overflow-hidden">
+          <div className="pointer-events-none absolute -inset-0.5 opacity-5 bg-[radial-gradient(circle_at_top,_#a855f7_0,_transparent_70%)]" />
+          <div className="relative z-10">
+            <Ticket className="h-5 w-5 text-[#facc15] mb-2" />
+            <div className="text-lg font-semibold text-[#e0e0e0]">
+              {isLoadingData ? "..." : userStats.ticketsCount} tickets
+            </div>
+            <div className="text-xs text-[#707070]">
+              {isLoadingData ? "..." : userStats.referrals} referrals
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 relative overflow-hidden">
+          <div className="pointer-events-none absolute -inset-0.5 opacity-5 bg-[radial-gradient(circle_at_top,_#f97316_0,_transparent_70%)]" />
+          <div className="relative z-10">
+            <Award className="h-5 w-5 text-[#3b82f6] mb-2" />
+            <div className="text-lg font-semibold text-[#e0e0e0]">
+              {isLoadingData ? "..." : fmtSpaceInt(userStats.totalBonusEarned)} SVT
+            </div>
+            <div className="text-xs text-[#707070]">
+              Total bonuses earned
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Investment Chart */}
+      {purchases.length > 0 && (
+        <InvestmentChart purchases={purchases} tokenPrice={tokenPrice} />
+      )}
+
+      {/* Create Referral Modal with Nickname */}
+      <AnimatePresence>
+        {showCreateReferral && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="relative w-full max-w-md rounded-2xl border border-[#1f1f1f] bg-[#050816] p-6 overflow-hidden"
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+            >
+              <div className="pointer-events-none absolute -inset-0.5 rounded-2xl opacity-30 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+              <div className="relative z-10 space-y-4 text-xs">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#050816] px-3 py-1 mb-2">
+                      <LinkIcon className="w-3 h-3 text-[#3b82f6]" />
+                      <span className="text-[11px] text-[#a0a0a0]">
+                        {currentReferralNickname ? "Your referral link" : "Set up referral nickname"}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-semibold text-[#e0e0e0]">
+                      {currentReferralNickname 
+                        ? "Share and earn bonuses!" 
+                        : "Create your referral nickname"}
+                    </h3>
+                    <p className="mt-1 text-[11px] text-[#707070]">
+                      {currentReferralNickname 
+                        ? `Your nickname: ${currentReferralNickname}`
+                        : "Set a short nickname (3-20 chars) that friends can use instead of your wallet address."}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowCreateReferral(false)}
+                    className="rounded-full bg-[#111827] p-2 text-[#707070] hover:text-[#e0e0e0]"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+<div className="rounded-xl bg-[#3b82f6]/10 p-3 text-[11px] text-[#c7d2fe]">
+  Earn {contractConstants?.referralBonusPct || 5}% bonus tokens
+  from every referral purchase.
+</div>
+
+                {!currentReferralNickname ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[11px] text-[#707070] mb-1">
+                        Choose your referral nickname
+                      </label>
+                      <input
+                        type="text"
+                        value={referralNickname}
+                        onChange={(e) => setReferralNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                        placeholder="e.g., crypto_pro"
+                        className="w-full rounded-xl h-12 bg-[#050816] border border-[#1f1f1f] text-xs text-[#e0e0e0] px-3 py-2.5 outline-none focus:border-[#3b82f6]"
+                        maxLength={20}
+                      />
+                      <div className="text-[10px] text-[#707070] mt-1">
+                        3-20 characters, letters, numbers and underscores only
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={handleSetReferralNickname}
+                      disabled={!referralNickname || isSettingNickname}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2563eb] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSettingNickname ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Setting nickname...
+                        </>
+                      ) : (
+                        <>
+                          <LinkIcon className="w-4 h-4" />
+                          Set nickname (requires gas fee)
+                        </>
+                      )}
+                    </button>
+                    
+                    <div className="text-[10px] text-[#707070]">
+                      This will create a permanent nickname on-chain. Friends can use this instead of your wallet address.
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="bg-[#070b14] border border-[#1f1f1f] rounded-xl p-3 space-y-2">
+                      <div className="text-[11px] text-[#707070]">
+                        Your referral link:
+                      </div>
+                      <div className="text-[11px] text-[#e0e0e0] font-mono break-all bg-[#050816] p-2 rounded border border-[#1f1f1f]">
+                        {referralLink}
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(referralLink);
+                          toast.success("Copied to clipboard!");
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2563eb] transition-all"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copy link
+                      </button>
+                    </div>
+
+                    <div className="text-[10px] text-[#707070]">
+                      <p className="font-semibold mb-1">How it works:</p>
+                      <ul className="space-y-1">
+                        <li>• Friends use your link to access the token sale</li>
+                        <li>• Their referral field is auto-filled with your nickname</li>
+                        <li>• You earn {contractConstants?.referralBonusPct || 5}% of their purchase as bonus tokens</li>
+                        <li>• Track referrals in your dashboard</li>
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left: Sale / Claim Switch */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Toggle row */}
+          <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs">
+              <span
+                className={`px-3 py-1 rounded-full border ${
+                  view === "sale"
+                    ? "bg-[#3b82f6] border-[#3b82f6] text-white"
+                    : "bg-[#050816] border-[#1f1f1f] text-[#a0a0a0]"
+                } cursor-pointer`}
+                onClick={() => setView("sale")}
+              >
+                Token sale
+              </span>
+              <span
+                className={`px-3 py-1 rounded-full border ${
+                  view === "claim"
+                    ? "bg-[#3b82f6] border-[#3b82f6] text-white"
+                    : "bg-[#050816] border-[#1f1f1f] text-[#a0a0a0]"
+                } cursor-pointer`}
+                onClick={() => setView("claim")}
+              >
+                Claim SVT
+              </span>
+            </div>
+            <div className="text-[11px] text-[#707070]">
+              Your tier: <span className="text-[#e0e0e0]">{userStats.tier}</span> (+{currentBonusPercent}% bonus)
+              {nextTier && tierProgress < 100 && remainingAmount > 0 && (
+                <span className="ml-2 text-[#22c1c3]">
+                  {nextTier.name} in: ${remainingAmount.toFixed(0)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {view === "sale" ? (
+            // ========== SALE FORM ==========
+            <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+              <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+              <div className="relative z-10 space-y-5 text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#e0e0e0]">
+                      Buy SVT tokens
+                    </h2>
+                    <p className="mt-1 text-[11px] text-[#707070]">
+                      {salePhase === "live" 
+                        ? "Get tier bonuses up to 20% + referral rewards. Earn 1 airdrop ticket per 500 SVT."
+                        : salePhase === "upcoming"
+                        ? `Sale starts in ${countdownToStart.days}d ${countdownToStart.hours}h ${countdownToStart.minutes}m`
+                        : "Sale has ended. You can claim your purchased tokens."}
+                    </p>
+                  </div>
+                  <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl px-3 py-2 text-right">
+                    <div className="text-[11px] text-[#707070]">
+                      Current tier bonus
+                    </div>
+                    <div className="text-[11px] text-[#e0e0e0]">
+                      +{currentBonusPercent}% on all purchases
+                    </div>
+                    {nextTier && tierProgress < 100 && (
+                      <div className="text-[10px] text-[#22c1c3] mt-1">
+                        {tierProgress.toFixed(1)}% to {nextTier.name}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment methods */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {(["USDT", "USDC", "BNB"] as PaymentMethod[]).map((pm) => {
+                    const active = paymentCurrency === pm;
+                    return (
+                      <button
+                        key={pm}
+                        type="button"
+                        onClick={() => setPaymentCurrency(pm)}
+                        className={`flex items-center h-14 gap-2 rounded-xl border px-3 py-2 text-left text-[11px] transition-all ${
+                          active
+                            ? "bg-[#050816] border-[#3b82f6]"
+                            : "bg-[#050816] border-[#1f1f1f]"
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-[#050816] border border-[#1f1f1f] flex items-center justify-center overflow-hidden">
+                          <img
+                            src={TOKEN_LOGOS[pm]}
+                            alt={pm}
+                            className="w-5 h-5 object-contain"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-[#e0e0e0] font-semibold">
+                            {pm}
+                          </div>
+                          <div className="text-[10px] text-[#707070]">
+                            {pm === 'BNB' 
+                              ? `1 BNB ≈ $${bnbPrice.toFixed(2)}`
+                              : `1 ${pm} = $1`}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Amount + referral */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="block text-[11px] text-[#a0a0a0]">
+                      Contribution amount (in USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-[#707070]">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        value={amountUsd}
+                        onChange={(e) => setAmountUsd(e.target.value)}
+                        placeholder="0.00"
+                        min={0}
+                        step="10"
+                        className="w-full font-semibold h-12 rounded-xl bg-[#050816] border border-[#1f1f1f] text-sm text-[#e0e0e0] pl-6 pr-3 py-2.5 outline-none focus:border-[#3b82f6]"
+                        disabled={salePhase !== "live"}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {[50, 100, 300, 600, 1000, 5000].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => salePhase === "live" && setAmountUsd(String(v))}
+                          className={`px-4 py-2 rounded-xl border text-[11px] transition-all ${
+                            salePhase === "live"
+                              ? "border-[#1f1f1f] bg-[#050816] text-[#a0a0a0] hover:text-[#e0e0e0] hover:border-[#3b82f6]/70"
+                              : "border-[#1f1f1f] bg-[#0a0f1d] text-[#505050] cursor-not-allowed"
+                          }`}
+                          disabled={salePhase !== "live"}
+                        >
+                          ${v}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 text-[11px] text-[#707070]">
+                      <span>Min: $50 • Max: $50,000</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[11px] text-[#a0a0a0]">
+                      Referral code (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      placeholder="Enter nickname or address"
+                      className="w-full rounded-xl h-12 bg-[#050816] border border-[#1f1f1f] text-xs text-[#e0e0e0] px-3 py-2.5 outline-none focus:border-[#3b82f6]"
+                      disabled={salePhase !== "live"}
+                    />
+                    <div className="text-[10px] text-[#707070]">
+                      {contractConstants?.referralBonusPct || 5}% bonus for referrer
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
+                  <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+                    <div className="text-[#707070] mb-1">
+                      You pay ({paymentCurrency})
+                    </div>
+                    <div className="text-sm font-semibold text-[#e0e0e0]">
+                      {paymentAmount > 0 ? paymentAmount.toFixed(paymentCurrency === 'BNB' ? 4 : 2) : "0.00"} {paymentCurrency}
+                    </div>
+                    <div className="text-[10px] text-[#707070] mt-1">
+                      {paymentCurrency === 'BNB' 
+                        ? `1 BNB ≈ $${bnbPrice.toFixed(2)}`
+                        : `1 ${paymentCurrency} = $1`}
+                    </div>
+                  </div>
+
+                  <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+                    <div className="text-[#707070] mb-1">
+                      Base SVT tokens
+                    </div>
+                    <div className="text-sm font-semibold text-[#e0e0e0]">
+                      {fmtSpaceInt(baseTokensPreview)} SVT
+                    </div>
+                    <div className="text-[10px] text-[#707070] mt-1">
+                      ${tokenPrice.toFixed(3)} per SVT
+                    </div>
+                  </div>
+
+                  <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3">
+                    <div className="text-[#707070] mb-1">
+                      Bonuses & total
+                    </div>
+                    <div className="text-sm font-semibold text-[#22c1c3]">
+                      +{fmtSpaceInt(bonusTokensPreview)} ({currentBonusPercent}%)
+                    </div>
+                    <div className="text-[10px] text-[#707070] mt-1">
+                      Total: <span className="text-[#e0e0e0] font-semibold">
+                        {fmtSpaceInt(totalTokensPreview)} SVT
+                      </span>
+                      {ticketsPreview > 0 && (
+                        <div className="mt-1 text-[#a855f7]">
+                          +{ticketsPreview} ticket{ticketsPreview !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info + button */}
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start w-2/3 gap-2 text-[11px] text-[#707070]">
+                    <Info className="w-3 h-3 text-[#3b82f6] mt-0.5" />
+                    <span>
+                      {salePhase === "live" 
+                        ? `Actual bonuses calculated by smart contract based on your tier. ${contractConstants?.referralBonusPct || 5}% referral bonus applied automatically.`
+                        : salePhase === "upcoming"
+                        ? `Sale starts ${formatDateWithTime(saleStart)}. Prepare your contribution.`
+                        : "Sale has ended. You can claim your purchased tokens."}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleBuy}
+                    disabled={
+                      !connected || 
+                      !parsedUsd || 
+                      parsedUsd < 50 || 
+                      !contractSaleActive ||
+                      isBuying ||
+                      salePhase !== "live"
+                    }
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg px-12 py-3 text-sm font-medium transition-all ${
+                      !connected ||
+                      !parsedUsd ||
+                      parsedUsd < 50 ||
+                      !contractSaleActive ||
+                      isBuying ||
+                      salePhase !== "live"
+                        ? "bg-[#050816] border border-[#1f1f1f] text-[#707070] cursor-not-allowed"
+                        : "bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+                    }`}
+                  >
+                    {isBuying ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : salePhase === "live" ? (
+                      <>
+                        Buy tokens
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    ) : salePhase === "upcoming" ? (
+                      "Sale starts soon"
+                    ) : (
+                      "Sale ended"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // ========== CLAIM VIEW ==========
+            <ClaimSection
+              stats={userStats}
+              onClaim={handleClaim}
+              onBackToSale={() => setView("sale")}
+              isClaiming={isClaiming}
+              claimStartDate={claimStart}
+            />
+          )}
+        </div>
+
+        {/* Right: History + Extra Info */}
+        <div className="space-y-4">
+          {/* History */}
+          <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+            <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+            <div className="relative z-10 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HistoryIcon className="w-4 h-4 text-[#3b82f6]" />
+                  <h3 className="text-sm font-semibold text-[#e0e0e0]">
+                    Purchase history
+                  </h3>
+                </div>
+                <span className="text-[11px] text-[#707070]">
+                  {purchases.length} records
+                </span>
+              </div>
+
+              {purchases.length === 0 ? (
+                <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-4 text-center text-[#707070] text-xs">
+                  No purchases yet. Your contributions will appear here.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1 custom-scroll">
+                  {purchases.map((p) => (
+                    <div
+                      key={p.id}
+                      className="bg-[#050816] border border-[#1f1f1f] rounded-xl px-3 py-2 text-[11px] flex flex-col gap-1 hover:border-[#3b82f6]/40 transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#e0e0e0] font-semibold">
+                          {fmtMoney(p.usdAmount)} → {fmtSpaceInt(p.totalTokens)} SVT
+                        </span>
+                        <span className="text-[#707070] text-[10px]">
+                          {formatDateTime(new Date(p.date))}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#707070]">
+                          {p.paymentAmount.toFixed(p.paymentCurrency === 'BNB' ? 4 : 2)} {p.paymentCurrency}
+                          {p.ticketsEarned && p.ticketsEarned > 0 && (
+                            <span className="ml-2 text-[#a855f7]">
+                              +{p.ticketsEarned} ticket{p.ticketsEarned > 1 ? 's' : ''}
+                            </span>
+                          )}
+                          {p.referralCode && (
+                            <span className="ml-2 text-[#facc15]">
+                              • ref: {p.referralCode.length > 10 ? p.referralCode.slice(0, 8) + '...' : p.referralCode}
+                            </span>
+                          )}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[10px] ${
+                            p.status === 'completed' ? 'text-emerald-400' :
+                            p.status === 'pending' ? 'text-[#facc15]' :
+                            'text-red-400'
+                          }`}>
+                            {p.status}
+                          </span>
+                          <a 
+                            href={getBscScanUrl(p.txHash)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[#3b82f6] hover:text-[#2563eb]"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Tier Information */}
+          <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+            <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_60%)]" />
+            <div className="relative z-10 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-[#facc15]" />
+                  <h3 className="text-sm font-semibold text-[#e0e0e0]">
+                    Tier System
+                  </h3>
+                </div>
+                <span className="text-[10px] text-[#707070]">
+                  Your tier: <span className={TIER_INFO.find(t => t.name === userStats.tier)?.color || "text-[#e0e0e0]"}>
+                    {userStats.tier}
+                  </span>
+                </span>
+              </div>
+              <div className="space-y-2">
+                {TIER_INFO.map((tier, index) => {
+                  const Icon = tier.icon;
+                  const isCurrent = userStats.tier === tier.name;
+                  const isUnlocked = index === 0 || (contractConstants && 
+                    (purchases.reduce((sum, p) => sum + p.usdAmount, 0) >= tier.min));
+                  
+                  return (
+                    <div key={tier.name} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-3 h-3 ${tier.color} ${!isUnlocked ? 'opacity-50' : ''}`} />
+                          <span className={`text-[11px] ${isCurrent ? 'font-semibold' : ''} ${tier.color} ${!isUnlocked ? 'opacity-50' : ''}`}>
+                            {tier.name} {isCurrent && "← You"}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[#707070]">
+                          {tier.min > 0 ? `≥ $${tier.min}` : 'Base'}
+                        </div>
+                      </div>
+                      {index < TIER_INFO.length - 1 && (
+                        <div className="h-1.5 w-full rounded-full bg-[#050816] overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 ${tier.color.replace('text-', 'bg-')} ${!isUnlocked ? 'opacity-50' : ''}`}
+                            style={{ 
+                              width: `${isCurrent ? tierProgress : (isUnlocked ? 100 : 0)}%` 
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className={`text-[10px] ${!isUnlocked ? 'text-[#505050]' : 'text-[#707070]'}`}>
+                        Bonus: +{tier.bonus}% on all purchases
+                        {isCurrent && index < TIER_INFO.length - 1 && tierProgress < 100 && (
+                          <span className="text-[#22c1c3] ml-1">
+                            ({tierProgress.toFixed(1)}% to next tier)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {contractConstants && !isLoadingData && (
+                <div className="text-[10px] text-[#707070] pt-2 border-t border-[#1f1f1f]">
+                  Referral bonus: {contractConstants.referralBonusPct}% • Total invested: ${purchases.reduce((sum, p) => sum + p.usdAmount, 0).toFixed(0)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Airdrop & Referral Info */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+              <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#a855f7_0,_transparent_60%)]" />
+              <div className="relative z-10 space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Ticket className="w-4 h-4 text-[#3b82f6]" />
+                    <h3 className="text-xs font-semibold text-[#e0e0e0]">
+                      Airdrop tickets
+                    </h3>
+                  </div>
+                  <span className="text-[10px] text-[#707070]">
+                    Boost: {airdropBoost}
+                  </span>
+                </div>
+                <div className="text-2xl font-semibold text-[#e0e0e0]">
+                  {userStats.ticketsCount}{" "}
+                  <span className="text-sm text-[#707070]">tickets</span>
+                </div>
+                <div className="text-[11px] text-[#707070]">
+                  Earn 1 ticket per 500 SVT purchased. Tickets increase your airdrop allocation weight.
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
+              <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_60%)]" />
+              <div className="relative z-10 space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#facc15]" />
+                    <h3 className="text-sm font-semibold text-[#e0e0e0]">
+                      Referral Program
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-[#707070]">
+                    {userStats.referrals} referred
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#707070]">
+                  Earn <span className="text-[#e0e0e0] font-semibold">{contractConstants?.referralBonusPct || 5}%</span> of every purchase made by your referrals.
+                </div>
+                
+                {purchases.length > 0 ? (
+                  <>
+                    <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3 space-y-2">
+                      <div className="text-[10px] text-[#707070] mb-1">
+                        {currentReferralNickname 
+                          ? "Your referral nickname is set"
+                          : "Create your referral nickname"}
+                      </div>
+                      <button
+                        onClick={createReferralLink}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2563eb] transition-all"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                        {currentReferralNickname ? "Copy referral link" : "Generate referral link"}
+                      </button>
+                      {currentReferralNickname && (
+                        <div className="text-[9px] text-emerald-400 text-center">
+                          Nickname: {currentReferralNickname}
+                        </div>
+                      )}
+                    </div>
+                    <ul className="space-y-1 text-[11px] text-[#707070]">
+                      <li>• Share your link to earn passive bonuses</li>
+                      <li>• Referral bonuses are claimable with main tokens</li>
+                      <li>• Track your referrals in real-time</li>
+                      <li>• Set a nickname instead of using wallet address</li>
+                    </ul>
+                  </>
+                ) : (
+                  <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-4 text-center">
+                    <div className="text-[11px] text-[#707070] mb-2">
+                      Make your first purchase to unlock referral link
+                    </div>
+                    <div className="text-[10px] text-[#707070]">
+                      After buying tokens, you'll be able to create a referral link and earn bonuses.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Final confirm modal */}
+      <ConfirmPurchaseModal
+        open={confirmModalOpen}
+        purchase={lastPurchase}
+        onClose={() => setConfirmModalOpen(false)}
+      />
+    </div>
+  );
+};
+
+export default TokenSale;

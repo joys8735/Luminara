@@ -1,0 +1,11 @@
+const STORAGE_ACTIVE = "sv_predictions_active";
+const STORAGE_HISTORY = "sv_predictions_history";
+const STORAGE_STREAK = "sv_predictions_streak";
+const STORAGE_ALPHA = "sv_predictions_alpha";
+const STORAGE_ALPHA_HISTORY = "sv_predictions_alpha_history";
+const STORAGE_WEEKLY_ALPHA = "sv_predictions_weekly_alpha";
+const STORAGE_WEEKLY_START = "sv_predictions_weekly_start";
+const STORAGE_HIDDEN_MMR = "sv_predictions_hidden_mmr";
+const FIVE_MIN = 5 * 60 * 1000;
+const CANCEL_WINDOW = 20 * 1000;
+export * from './constants';

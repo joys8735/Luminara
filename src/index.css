@@ -1,0 +1,871 @@
+/* PLEASE NOTE: THESE TAILWIND IMPORTS SHOULD NEVER BE DELETED */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+/* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL */
+
+/* Import Google Font - Inter for clean, modern look */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@layer base {
+  body {
+    position: relative;
+    min-height: 100vh;
+
+    background: var(--bg-app);
+    color: var(--text-main);
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+[data-theme="dark"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  background-image: url("/icons/2465347.jpg");
+  background-position: bottom;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  opacity: 0.1;
+
+  filter: blur(2px);
+
+  transform: scale(1.05);
+}
+
+/* [data-theme="light"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  background-image: url("/icons/420644334_ee00c1cf-0ef3-4ac2-b77d-dab6f262ea41.jpg");
+  background-position: bottom;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  
+  opacity: 0.10;
+
+  
+  filter: blur(1px);
+
+  transform: scale(1.05); 
+} */
+
+.font-display {
+  font-family: "Space Grotesk", Inter, sans-serif;
+}
+
+.font-mono-ui {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+h1 {
+  @apply text-2xl font-semibold;
+}
+
+h2 {
+  @apply text-xl font-semibold;
+}
+
+h3 {
+  @apply text-lg font-medium;
+}
+
+p {
+  @apply text-sm;
+}
+
+/* Monochromatic color palette */
+/* :root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1a1a1a;
+  --border-color: #1f1f1f;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-tertiary: #707070;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+} */
+
+:root {
+  --radius: 0.5rem;
+}
+
+[data-theme="dark"] {
+  --bg-app: #0f1420; /* глибокий indigo-navy */
+  --bg-card: #202530;
+  --bg-card-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.323), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+  --backdrop-blur: blur(16px);
+  --bg-card-gradient: radial-gradient(
+    circle at top left,
+    rgba(168, 85, 247, 0.1),
+    transparent 70%
+  );
+  --bg-inner: #0a101f;
+  --bg-hover: #253549;
+
+  --border: #3f4a5f;
+  --text-main: #e2e8f0;
+  --text-muted: #a0aec0;
+  --text-dim: #718096;
+
+  /* Jewel акценти */
+  --accent-purple: #9333ea; /* violet-600 — Fresh Purple inspired */
+  --accent-teal: #0f766e; /* teal-800 — глибокий, mysterious */
+  --accent-blue: #6366f1;
+  --accent-pink: #db2777; /* для енергії */
+
+  --header: #0f1420;
+  --sidebar: #1a2234;
+}
+
+[data-theme="light"] {
+  --bg-app: #f9fafb; /* slate-50 — м'якший, чистіший за #f8f9fc */
+  --bg-card: #ffffff;
+  --bg-card-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    /* легка базова */ 0 4px 16px rgba(0, 0, 0, 0.05),
+    /* середня глибина */ 0 10px 40px rgba(0, 0, 0, 0.03); /* далека — повітря */
+  --bg-card-hover-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.08), 0 12px 48px rgba(0, 0, 0, 0.04);
+  --bg-card-gradient: radial-gradient(
+    circle at top left,
+    rgba(99, 102, 241, 0.05) 0%,
+    transparent 70%
+  );
+  --bg-inner: #f8fafc; /* ще світліше для nested карток */
+  --bg-hover: #f1f5f9; /* hover без різкості */
+
+  --border: #e2e8f0; /* slate-200 — м'який, але видимий */
+  --border-strong: #cbd5e1; /* slate-300 — для акцентних бордерів, якщо треба */
+  --text-main: #0f172a; /* slate-950 — глибший чорний, кращий контраст */
+  --text-muted: #475569; /* slate-600 — темніше для читабельності */
+  --text-dim: #64748b; /* slate-500 */
+
+  --accent-blue: #6366f1; /* indigo-500 */
+  --accent-purple: #7c3aed; /* violet-600 — трохи глибше */
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-pink: #ec4899;
+
+  --header: #ffffff;
+  --sidebar: #f9fafb; /* майже як bg-app, але з тінню відокремлюється */
+  --icon-card: #f1f5f9;
+}
+
+.btn-gradient {
+  background: linear-gradient(
+    to right,
+    #77530a,
+    #ffd277,
+    #77530a,
+    #77530a,
+    #ffd277,
+    #77530a
+  );
+  background-size: 350%;
+  background-position: left;
+  animation: gradient-spin 8s infinite;
+}
+
+.btn-gradient:hover {
+  background-position: right;
+}
+
+.btn-inner {
+  background-color: #111827;
+  background-size: 200%;
+}
+
+.btn-inner:hover {
+  background-position: right;
+  
+}
+
+/* Ключові кадри: зсув позиції → створює ефект «біжучої смуги» по колу */
+@keyframes gradient-spin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.test1 {
+  display: none !important;
+}
+.btn-primary1 {
+  background: linear-gradient(15deg, var(--accent-blue), var(--accent-green));
+  color: white;
+}
+
+.card-gradient {
+  background: radial-gradient(
+    circle at top,
+    var(--accent-blue) 0%,
+    var(--accent-pink) 25%,
+    transparent 60%
+  );
+}
+.card-gradient-soft {
+  background: var(--bg-card-gradient);
+  opacity: 0.15;
+}
+
+@layer components {
+  .ui-app {
+    background: var(--bg-app);
+    color: var(--text-main);
+  }
+  .ui-card {
+    background: var(--bg-card);
+    box-shadow: var(--bg-card-shadow);
+  }
+  .ui-inner {
+    background: var(--bg-inner);
+  }
+  .ui-hover {
+    background: var(--bg-hover);
+  }
+  .ui-border {
+    border: 1px solid var(--border);
+  }
+  .ui-bg-text {
+    color: var(--bg-text);
+  }
+  .ui-blur {
+    filter: blur(3px);
+  }
+  .ui-input {
+    background-color: #eeeeee1b;
+  }
+}
+
+/* .card-gradient-soft {
+  background: url('https://img.freepik.com/free-vector/abstract-network-communications-background-with-low-poly-design_1048-12906.jpg?t=st=1767564070~exp=1767567670~hmac=7a9c35a0b70a06ded8e31eab27b6908dbb38ff489a5a26c82238608415d2c71a');
+  background-position: bottom;
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity: 0.2;
+} */
+
+@layer components {
+  .btn-primary {
+    background: var(--accent-blue);
+    color: white;
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-neutral {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+  }
+  .btn-neutral:hover {
+    filter: brightness(1.1);
+  }
+}
+
+/* Custom scrollbar - minimalist */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0f14;
+  margin: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background: #eeeeee17;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
+}
+
+/* globals.css або sonner.css */
+.sonner-toast-custom [data-sonner-toast] {
+  position: relative;
+  overflow: visible !important;
+}
+
+.sonner-toast-custom [data-close-button] {
+  /* Sonner використовує data-close-button атрибут */
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.1) !important; /* або var(--bg-hover) */
+  color: var(--text-muted) !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 9999px !important;
+  top: 8px !important;
+  right: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s !important;
+}
+
+.sonner-toast-custom [data-close-button]:hover {
+  background: rgba(0, 0, 0, 0.2) !important;
+  color: var(--text-main) !important;
+  transform: scale(1.1);
+}
+
+/* Progress bar animations */
+@keyframes progressFill {
+  from {
+    width: 0%;
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.progress-bar-animated {
+  animation: progressFill 1.5s ease-out forwards;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pulse animation for active elements */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Smooth hover effects */
+.hover-lift {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Button styles */
+.btn-minimal {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-minimal:hover {
+  background: #222;
+  border-color: #2a2a2a;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* Input styles */
+input,
+select,
+textarea {
+  font-size: 0.875rem;
+}
+
+/* Reduce spacing for compact design */
+.compact-spacing {
+  @apply space-y-3;
+}
+
+/* Crypto icon styles */
+.crypto-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.crypto-icon-sol {
+  background: linear-gradient(135deg, #14f195 0%, #9945ff 100%);
+  color: white;
+}
+
+.crypto-icon-usdc {
+  background: #2775ca;
+  color: white;
+}
+
+.crypto-icon-eth {
+  background: #627eea;
+  color: white;
+}
+
+.crypto-icon-btc {
+  background: #f7931a;
+  color: white;
+}
+
+/* Shimmer effect for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* snake border animation */
+@keyframes snake-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.snake-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px; /* товщина рамки */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #3b82f6 20%,
+    #60a5fa 40%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: snake-border 1.6s linear infinite;
+
+  /* магія — залишає тільки рамку */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  pointer-events: none;
+}
+
+/* Remove arrows from number inputs (Chrome, Edge, Safari, Opera) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.snake-border1 {
+  position: relative;
+  overflow: hidden;
+}
+
+.snake-border1::before {
+  content: "";
+  position: absolute;
+  inset: -200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 270deg,
+    rgba(250, 204, 21, 1) 270deg,
+    rgba(168, 85, 247, 1) 310deg,
+    transparent 360deg
+  );
+  animation: snake-rotate 5s linear infinite;
+}
+
+.snake-border1::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  background: #000000;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+@keyframes snake-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Snake portal border */
+.portal-border {
+  position: relative;
+}
+
+.portal-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(168, 85, 247, 0.9) 140deg,
+    rgba(250, 204, 21, 0.9) 200deg,
+    transparent 300deg
+  );
+  animation: portal-rotate 5s linear infinite;
+
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  pointer-events: none;
+}
+
+/* Swirl inside */
+.portal-swirl {
+  background: conic-gradient(from 180deg, #8b5cf6, #3b82f6, #facc15, #8b5cf6);
+  animation: swirl-spin 8s linear infinite;
+  filter: blur(14px);
+}
+
+/* Core pulse */
+.portal-core {
+  background: radial-gradient(circle at 30% 30%, #facc15, #a855f7);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.7);
+  animation: core-pulse 2.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes portal-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes swirl-spin {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes core-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-dash {
+  animation: dash 2s ease-out forwards;
+}
+.animate-blink {
+  animation: blink 1.2s step-end infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.glitch {
+  animation: glitch 5s infinite;
+}
+@keyframes glitch {
+  0%,
+  100% {
+    text-shadow:
+      0.05em 0 0 #60a5fa,
+      -0.03em -0.025em 0 #c084fc;
+  }
+  14% {
+    text-shadow:
+      0.05em 0 0 #60a5fa,
+      -0.03em -0.025em 0 #c084fc;
+  }
+  15% {
+    text-shadow:
+      -0.05em 0.025em 0 #60a5fa,
+      0.03em 0.025em 0 #c084fc;
+  }
+  49% {
+    text-shadow:
+      -0.05em 0.025em 0 #60a5fa,
+      0.03em 0.025em 0 #c084fc;
+  }
+  50% {
+    text-shadow:
+      0.05em -0.025em 0 #60a5fa,
+      -0.03em 0 0 #c084fc;
+  }
+  99% {
+    text-shadow:
+      0.05em -0.025em 0 #60a5fa,
+      -0.03em 0 0 #c084fc;
+  }
+}
+.animate-pulse-slow {
+  animation: pulse 15s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+.btn-shine {
+  transform: translate(-50%, -50%);
+  padding: 12px 48px;
+  color: #fff;
+  background: linear-gradient(to right, #9f9f9f 0, #fff 10%, #050505 20%);
+  background-position: 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s infinite linear;
+  animation-fill-mode: forwards;
+  -webkit-text-size-adjust: none;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  white-space: nowrap;
+  font-family: "Poppins", sans-serif;
+}
+@-moz-keyframes shine {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 180px;
+  }
+  100% {
+    background-position: 180px;
+  }
+}
+@-webkit-keyframes shine {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 180px;
+  }
+  100% {
+    background-position: 180px;
+  }
+}
+@-o-keyframes shine {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 180px;
+  }
+  100% {
+    background-position: 180px;
+  }
+}
+@keyframes shine {
+  0% {
+    background-position: 0;
+  }
+  60% {
+    background-position: 180px;
+  }
+  100% {
+    background-position: 180px;
+  }
+}
+
+.card {
+  /* width: 190px;
+  height: 354px; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  /* padding: 0px 15px; */
+  background-color: red;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  position: relative;
+  cursor: pointer;
+  font-weight: 900;
+  transition-duration: .5s;
+  background: linear-gradient(0deg, #000, #272727);
+}
+
+.card:before, .card:after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #fb0094, #0000ff, #00ff00,#ffff00, #ff0000, #fb0094, 
+		#0000ff, #00ff00,#ffff00, #ff0000);
+  background-size: 400%;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  z-index: -1;
+  animation: steam 50s linear infinite;
+}
+
+@keyframes steam {
+  0% {
+    background-position: 0 0;
+  }
+
+  50% {
+    background-position: 400% 0;
+  }
+
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.card:after {
+  filter: blur(100px);
+}
+

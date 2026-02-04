@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="any" href="logo-mini-black1.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luminara - DeFI project (DEV)</title>
+   
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+    <script>
+  (function () {
+    const key = "sv_theme";
+    const saved = localStorage.getItem(key);
+    const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = (saved === "light" || saved === "dark") ? saved : (systemDark ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+  
+</script>
+
+  </body>
+</html>
