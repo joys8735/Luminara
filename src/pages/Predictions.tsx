@@ -2759,13 +2759,13 @@ export function Predictions() {
       <AnimatePresence>
         {resultPopup && (
           <motion.div
-            className="fixed inset-0  ml-64 flex items-center justify-center z-30 p-4"
+            className="fixed inset-0 ml-64 flex items-center justify-center z-30 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="absolute top-6 ui-card backdrop-blur-md rounded-2xl p-4 w-full "
+              className="absolute top-8 ui-card backdrop-blur-md rounded-full p-4 w-[70vw] "
               initial={{
                 scale: 0.8,
                 opacity: 0,

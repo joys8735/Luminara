@@ -18,18 +18,18 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
     isLoading: profileLoading,
     _debug,
   } = useProfile();
-    const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
 
-    const [userStats] = useState({
-      level: 1,
-      alphaPoints: 1250,
-      nftCount: 3,
-      boxesOpened: 42,
-      referralCode: "ALPHA123",
-      joinedDate: "2024-01-15",
-    });
+  const [userStats] = useState({
+    level: 1,
+    alphaPoints: 1250,
+    nftCount: 3,
+    boxesOpened: 42,
+    referralCode: "ALPHA123",
+    joinedDate: "2024-01-15",
+  });
 
-      const copyToClipboard = (text: string, type: string) => {
+  const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     setCopiedAddress(type);
     setTimeout(() => setCopiedAddress(null), 2000);
@@ -38,7 +38,7 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
   // Примусово залежимо від profile.avatar та avatars
   const currentAvatar = useMemo(() => {
     const avatar = getCurrentAvatar();
-    
+
     return avatar;
   }, [profile?.avatar, getCurrentAvatar]); // ← ключова залежність
 
@@ -51,7 +51,7 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
 
   // Логування при кожній зміні аватара
   React.useEffect(() => {
-   
+
   }, [
     profile?.avatar,
     currentAvatar?.avatar_id,
@@ -74,7 +74,7 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
 
   const displayName =
     profile.username || googleUser.name || googleUser.email.split("@")[0];
-  
+
 
   return (
     // Key на всьому блоці — змушує React перестворювати DOM при зміні аватара
@@ -104,7 +104,7 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
             {/* Кнопка Edit */}
             <button
               onClick={onEditClick}
-              className="absolute top-14 left-0 rounded-xl text-[10px] px-3 py-1 bg-[#1f1f1f] hover:bg-[#2a2a2a]  rounded transition-colors z-10"
+              className="absolute top-14 left-1 rounded-xl text-[10px] px-3 py-1 bg-[#1f1f1f]/50 hover:bg-[#2a2a2a]  rounded transition-colors z-10"
               title="Edit Profile"
             >
               Edit
@@ -139,26 +139,26 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
         </div>
 
         <div className="flex-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center leading-none justify-between">
             <div>
               <h3 className="font-semibold text-[#e0e0e0] text-sm">
-                {displayName} 
+                {displayName}
               </h3>
               <div className="inline-flex items-center gap-1">
-  {/* <span className="w-1 h-1 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500" /> */}
-  <span className="text-[10px] text-[#a0a0a0] font-mono">
-    {profile.id.slice(0, 4)}...{profile.id.slice(-4)}
-  </span>
-  {/* <div className="w-px h-3 bg-[#374151]" /> */}
-  <button 
-    onClick={() => navigator.clipboard.writeText(profile.id)}
-    className="text-[#6b7280] hover:text-cyan-400 transition-colors"
-  >
-    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-    </svg>
-  </button>
-</div>
+                {/* <span className="w-1 h-1 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500" /> */}
+                <span className="text-[10px] text-[#a0a0a0] font-mono">
+                  uid: {profile.id.slice(0, 4)}...{profile.id.slice(-4)}
+                </span>
+                {/* <div className="w-px h-3 bg-[#374151]" /> */}
+                <button
+                  onClick={() => navigator.clipboard.writeText(profile.id)}
+                  className="text-[#6b7280] hover:text-cyan-400 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="flex items-center gap-1 text-[10px]">
               <span className="text-[#707070]">Lv.</span>
@@ -182,34 +182,34 @@ export function UserProfile({ googleUser, onEditClick }: UserProfileProps) {
               />
             </div>
           </div>
-         
+
         </div>
       </div>
-       <div className="mb-4">
-              <div className="p-3 rounded-xl ui-inner">
-                <div className="text-xs text-[#707070]">Boxes Opened</div>
-                <div className="text-sm font-semibold text-[#e0e0e0]">
-                  {userStats.boxesOpened}
-                </div>
-                <div className="text-xs text-[#707070] mt-1">Referral Code</div>
-                <div className="text-sm font-semibold text-[#3b82f6] flex items-center justify-between">
-                  {userStats.referralCode}
-                  <button
-                    onClick={() =>
-                      copyToClipboard(userStats.referralCode, "referral")
-                    }
-                    className="text-xs px-2 py-1 bg-[#1f1f1f] rounded hover:bg-[#2a2a2a]"
-                  >
-                    {copiedAddress === "referral" ? (
-                      <Check className="w-3 h-3" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-            
+      <div className="mb-4">
+        <div className="p-3 rounded-xl ui-inner">
+          <div className="text-xs text-[#707070]">Boxes Opened</div>
+          <div className="text-sm font-semibold text-[#e0e0e0]">
+            {userStats.boxesOpened}
+          </div>
+          <div className="text-xs text-[#707070] mt-1">Referral Code</div>
+          <div className="text-sm font-semibold text-[#3b82f6] flex items-center justify-between">
+            {userStats.referralCode}
+            <button
+              onClick={() =>
+                copyToClipboard(userStats.referralCode, "referral")
+              }
+              className="text-xs px-2 py-1 bg-[#1f1f1f] rounded hover:bg-[#2a2a2a]"
+            >
+              {copiedAddress === "referral" ? (
+                <Check className="w-3 h-3" />
+              ) : (
+                <Copy className="w-3 h-3" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

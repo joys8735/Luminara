@@ -19,10 +19,10 @@ import {
   LineChart,
 } from 'lucide-react';
 
-import ProjectCard from '../components/ProjectCard';
-import TierSystem from '../components/TierSystem';
-import InvestmentModal from '../components/InvestmentModal';
-import FeaturedProject from '../components/FeaturedProject';
+import ProjectCard from '../components/Home/ProjectCard';
+import TierSystem from '../components/Home/TierSystem';
+import InvestmentModal from '../components/Home/InvestmentModal';
+import FeaturedProject from '../components/Home/FeaturedProject';
 
 export function Home() {
   const { connected } = useWallet();

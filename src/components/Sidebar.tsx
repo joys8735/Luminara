@@ -6,7 +6,9 @@ import { WalletConnectModal } from "../components/WalletConnectModal";
 import { useWallet } from "../context/WalletContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { usePremium } from '../context/PremiumContext';
+import { useProfile } from "../hooks/useProfile";
 import { supabase, signInWithGoogle, getProfileId, getCurrentUser } from '../lib/supabase'; // Імпортуємо функції з supabase.ts
+
 
 import {
   Home,
@@ -55,6 +57,9 @@ export function Sidebar() {
   const profileRef = useRef<HTMLDivElement | null>(null);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Додаємо useProfile hook
+  const { profile, getCurrentAvatar, getCurrentFrame, isLoading: profileLoading } = useProfile();
 
   const disconnect = () => {
     disconnectWallet();
@@ -134,6 +139,7 @@ export function Sidebar() {
       console.error('Login error:', error);
     }
   };
+  
 
   // ✅ Оновлена функція виходу
   const handleGoogleLogout = async () => {
@@ -165,6 +171,8 @@ export function Sidebar() {
     }
   };
 
+  
+
   const user = useMemo(() => {
     if (!googleUser) {
       return {
@@ -194,7 +202,7 @@ export function Sidebar() {
   // Навігаційні списки (залишаємо без змін)
   const main: NavItem[] = [
     { icon: Home, path: '/', label: 'Dashboard' },
-    { icon: Coins, path: '/token-sale', label: 'Token Sale', badge: 'IDO', sale: '$0.53' },
+    // { icon: Coins, path: '/token-sale', label: 'Token Sale', badge: 'IDO', sale: '$0.53' },
     { icon: Droplets, path: '/pools', label: 'Liquidity Pools' },
     { icon: CreditCard, path: '/mining', label: 'Mining' },
     { icon: Gem, path: '/nft-drop', label: 'NFT Drop' },
@@ -213,11 +221,11 @@ export function Sidebar() {
     { icon: ShoppingBag, path: '/marketplace', label: 'Marketplace' },
   ];
 
-  const resources: NavItem[] = [
-    { icon: HelpCircle, path: '/support', label: 'Support' },
-    { icon: Shield, path: '/security', label: 'Security' },
-    { icon: ExternalLink, path: 'https://docs.solanaverse.com', label: 'Docs', external: true },
-  ];
+  // const resources: NavItem[] = [
+  //   { icon: HelpCircle, path: '/support', label: 'Support' },
+  //   { icon: Shield, path: '/security', label: 'Security' },
+  //   { icon: ExternalLink, path: 'https://docs.solanaverse.com', label: 'Docs', external: true },
+  // ];
 
   const socialLinks = [
     {
@@ -250,8 +258,8 @@ export function Sidebar() {
   // ✅ Компонент секції
   const Section = ({ title, items }: { title: string; items: NavItem[] }) => (
     <div className="mb-2">
-      <div className="px-3 mb-3">
-        <div className="text-[11px] tracking-wider uppercase text-[var(--text_main)]/60 font-medium">{title}</div>
+      <div className="px-3 mb-2">
+        <div className="text-[11px] tracking-wider uppercase text-[var(--text-dim)] font-medium">{title}</div>
       </div>
       <div className="space-y-0.5">
         {items.map((item) => {
@@ -268,32 +276,32 @@ export function Sidebar() {
               className={cx(
                 'group relative flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl text-[12px] transition-all duration-200',
                 isActive
-                  ? 'bg-gradient-to-r from-[#3b82f6]/10 to-[#1d4ed8]/5 '
-                  : 'hover:bg-[#ffffff]/5'
+                  ? 'bg-gradient-to-r from-[var(--accent-blue-20)] to-[var(--accent-purple-10)] border border-[var(--accent-blue-20)]'
+                  : 'hover:bg-[var(--sidebar-hover)]'
               )}
             >
               <Icon className={cx(
                 'w-3.5 h-3.5 flex-shrink-0 transition-all duration-200',
-                isActive ? 'text-[#3b82f6]' : 'text-[#a0a0a0] group-hover:text-[#e0e0e0]'
+                isActive ? 'text-[var(--accent-blue)]' : 'text-[var(--text-muted)] group-hover:text-[var(--accent-blue)]'
               )} />
               <span className={cx(
                 'truncate font-medium',
-                isActive ? 'text-[var(--text_main)]' : 'text-[#b0b0b0] group-hover:text-[#e0e0e0]'
+                isActive ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'
               )}>
                 {item.label}
               </span>
               {item.badge && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-[#3b82f6]/20 to-[#1d4ed8]/20 border border-[#3b82f6]/30 text-[#3b82f6] font-medium">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-[var(--accent-blue)]/20 to-[var(--accent-purple)]/20 border border-[var(--accent-blue)]/30 text-[var(--accent-blue)] font-medium">
                   {item.badge}
                 </span>
               )}
               {item.sale && (
-                <span className="gap-1 text-[10px]">{item.sale}</span>
+                <span className="gap-1 text-[10px] text-[var(--accent-green)]">{item.sale}</span>
               )}
-              {item.external && <ExternalLink className="w-3 h-3 text-[#707070]" />}
+              {item.external && <ExternalLink className="w-3 h-3 text-[var(--text-dim)]" />}
               <ChevronRight className={cx(
                 'w-3 h-3 ml-auto transition-transform duration-200',
-                isActive ? 'text-[#3b82f6] opacity-100' : 'text-transparent group-hover:text-[#707070]'
+                isActive ? 'text-[var(--accent-blue)] opacity-100' : 'text-transparent group-hover:text-[var(--text-dim)]'
               )} />
             </Link>
           );
@@ -305,9 +313,9 @@ export function Sidebar() {
   const MobileMenuButton = () => (
     <button
       onClick={() => setSidebarOpen(true)}
-      className="md:hidden fixed top-4 left-4 z-40 w-10 h-10 rounded-xl bg-[#1a1a1a] border border-[#1f1f1f] flex items-center justify-center shadow-lg"
+      className="md:hidden fixed top-4 left-4 z-40 w-10 h-10 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] flex items-center justify-center shadow-lg hover:bg-[var(--accent-blue)]/10 transition-all duration-200"
     >
-      <Menu className="w-5 h-5 text-[#e0e0e0]" />
+      <Menu className="w-5 h-5 text-[var(--text-main)]" />
     </button>
   );
 
@@ -332,7 +340,7 @@ export function Sidebar() {
       
       {/* Десктоп сайдбар */}
       <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 z-30">
-        <div className="h-full bg-[var(--sidebar)] border-r border-[#1f1f1f]/60 flex flex-col w-full">
+        <div className="h-full bg-[var(--sidebar)] flex flex-col w-full shadow-lg">
           {/* Логотип */}
           <div className="px-4 pt-4 pb-3">
             <div className="flex items-center justify-between gap-3">
@@ -345,7 +353,7 @@ export function Sidebar() {
                   />
                 </div>
               </div>
-              <ThemeToggle />
+              
             </div>
           </div>
 
@@ -354,7 +362,7 @@ export function Sidebar() {
             <Section title="Main" items={main} />
             <Section title="Earn & Stake" items={earn} />
             <Section title="Community" items={community} />
-            <Section title="Resources" items={resources} />
+            {/* <Section title="Resources" items={resources} /> */}
           </div>
 
           {/* Футер з профілем */}
@@ -364,9 +372,9 @@ export function Sidebar() {
                 {!isLoggedIn ? (
                   <button
                     onClick={handleGoogleLogin}
-                    className="w-full px-4 py-3 text-left -mb-2 text-[12px] text-[#b0b0b0] hover:text-[#e0e0e0] bg-[#eee]/5 rounded-xl hover:bg-[#1a1a1a] transition-colors flex items-center gap-3"
+                    className="w-full px-4 py-3 text-left -mb-2 text-[12px] text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-card)] rounded-xl hover:bg-[var(--accent-blue)]/10 transition-all duration-200 flex items-center gap-3 border border-[#eee]/10"
                   >
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center ">
                       <svg className="w-6 h-6" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -376,7 +384,7 @@ export function Sidebar() {
                     </div>
                     <div>
                       <div className="font-medium">Login with Google</div>
-                      <div className="text-[10px] text-[#707070]">Access all features</div>
+                      <div className="text-[10px] text-[var(--text-dim)]">Access all features</div>
                     </div>
                   </button>
                 ) : (
@@ -384,39 +392,52 @@ export function Sidebar() {
                     <button
                       onClick={() => setProfileOpen((v) => !v)}
                       className={`
-                        w-full -mb-2 p-3 ui-card hover:ui-inner
+                        w-full -mb-2 p-3 bg-[var(--bg-inner)] hover:bg-[var(--bg-hover)]
                         transition-all duration-300 ease-in-out
-                        flex items-center gap-3 group
+                        flex items-center gap-3 group 
                         ${profileOpen ? "rounded-b-2xl" : "rounded-2xl"}
                       `}
                     >
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center overflow-hidden transition-all duration-500 bg-gradient-to-br from-[#4285F4] to-[#34A853]">
-                        <span className="text-white font-bold text-[12px]">
-                          {user.avatarInitial}
-                        </span>
+                      <div className="relative w-9 h-9">
+                        {/* Аватарка */}
+                        <img
+                          src={getCurrentAvatar()?.imageUrl || 'https://via.placeholder.com/28?text=Avatar'}
+                          alt="Avatar"
+                          className="w-full h-full rounded-full object-cover border-2 border-[#1f1f1f]"
+                        />
+                        
+                        {/* Фрейм поверх аватарки */}
+                        {profile?.avatar_frame !== "none" && getCurrentFrame()?.image_url && (
+                          <img
+                            src={getCurrentFrame()?.image_url}
+                            alt="Frame"
+                            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                          />
+                        )}
+                        
                         {hasPremium && (
-                          <Crown className="absolute left-7 mt-5 w-5 h-5 text-[#facc15] bg-[#1a1a1a] rounded-full p-1" />
+                          <Crown className="absolute -top-1 -right-1 w-4 h-4 text-[var(--accent-amber)] bg-[var(--bg-card)] rounded-full p-0.5" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1 text-left">
-                        <div className="text-[12px] text-[#e0e0e0] font-semibold truncate">
+                        <div className="text-[12px] text-[var(--text-main)] font-semibold truncate">
                           {user.name}
                         </div>
-                        <div className="text-[10px] text-[#a0a0a0] truncate">
+                        <div className="text-[10px] text-[var(--text-dim)] truncate">
                           {user.email}
                         </div>
                       </div>
                       <ChevronDown className={cx(
-                        "w-4 h-4 text-[#a0a0a0] transition-transform duration-300",
+                        "w-4 h-4 text-[var(--text-muted)] transition-transform duration-300",
                         profileOpen && "rotate-180"
                       )} />
                     </button>
 
                     {/* Дропдаун профілю */}
                     {profileOpen && (
-                      <div className="absolute bottom-full left-0 right-0 mt-0 mb-0 rounded-t-2xl ui-card backdrop-blur-xl shadow-2xl overflow-hidden z-50">
+                      <div className="absolute bottom-full left-0 right-0 mt-0 mb-0 rounded-t-2xl bg-[#0a101f]/80  backdrop-blur-lg shadow-2xl overflow-hidden z-50">
                         {connected && (
-                          <div className="mx-1 mt-2 p-2 ui-inner shadow-md shadow-gray-900/90 rounded-xl">
+                          <div className="mx-3 mt-2 p-2 bg-[var(--bg-card)] shadow-md rounded-3xl">
                             <div className="flex items-center gap-2">
                               <img className="ml-2 w-6 h-6" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/512px-MetaMask_Fox.svg.png" alt="" />
                               <div className="flex ml-2 items-center justify-between text-[10px]">
@@ -424,21 +445,21 @@ export function Sidebar() {
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={copyWallet}
-                                    className="w-5 h-5 rounded-md ui-card hover:bg-[#171717] flex items-center justify-center ml-1 transition-colors"
+                                    className="w-5 h-5 rounded-md hover:bg-[var(--bg-hover)] flex items-center justify-center ml-1 transition-colors "
                                     title={copied ? "Copied" : "Copy"}
                                   >
                                     {copied ? (
-                                      <Check className="w-3 h-3 text-green-400" />
+                                      <Check className="w-3 h-3 text-[var(--accent-green)]" />
                                     ) : (
-                                      <Copy className="w-3 h-3 text-[#a0a0a0]" />
+                                      <Copy className="w-3 h-3 text-[var(--text-muted)]" />
                                     )}
                                   </button>
                                   <button
                                     onClick={disconnect}
-                                    className="absolute right-3 w-5 h-5 rounded-md bg-[#121212] hover:bg-[#171717] justify-end transition-colors"
+                                    className="absolute right-7 w-6 h-6 rounded-md bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] justify-end transition-colors border border-red-500/20"
                                     title="Disconnect"
                                   >
-                                    <LogOut className="w-5 h-5 text-[#ef4444]/80 px-1 rounded-[5px] border border-[#ef4444]/30" />
+                                    <LogOut className="w-5 h-5 text-red-500/80 px-1 rounded-[5px]" />
                                   </button>
                                 </div>
                               </div>
@@ -452,14 +473,14 @@ export function Sidebar() {
                               setProfileOpen(false);
                               setLogoutOpen(true);
                             }}
-                            className="w-full px-4 py-2.5 text-left text-[12px] text-[#b0b0b0] hover:text-[#e0e0e0] hover:ui-inner transition-colors flex items-center gap-3"
+                            className="w-full px-4 py-2.5 text-left text-[12px] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-3"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-[#eee]/10 flex items-center justify-center">
-                              <LogOut className="w-4 h-4 text-[#a0a0a0]" />
+                            <div className="w-8 h-8 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center">
+                              <LogOut className="w-4 h-4 text-[var(--text-muted)]" />
                             </div>
                             <div>
                               <div className="font-medium">Logout</div>
-                              <div className="text-[10px] text-[#707070]">Sign out from Google</div>
+                              <div className="text-[10px] text-[var(--text-dim)]">Sign out from Google</div>
                             </div>
                           </button>
                           
@@ -469,14 +490,14 @@ export function Sidebar() {
                                 setProfileOpen(false);
                                 setConnectOpen(true);
                               }}
-                              className="w-full px-4 py-2.5 text-left text-[12px] text-[#b0b0b0] hover:text-[#e0e0e0] hover:ui-inner transition-colors flex items-center gap-3"
+                              className="w-full px-4 py-2.5 text-left text-[12px] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-3"
                             >
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3b82f6]/20 to-[#1d4ed8]/20 border border-[#3b82f6]/30 flex items-center justify-center">
-                                <LinkIcon className="w-4 h-4 text-[#3b82f6]" />
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-blue)]/20 to-[var(--accent-purple)]/20 border border-[var(--accent-blue)]/30 flex items-center justify-center">
+                                <LinkIcon className="w-4 h-4 text-[var(--accent-blue)]" />
                               </div>
                               <div>
                                 <div className="font-medium">Link Wallet</div>
-                                <div className="text-[10px] text-[#707070]">Phantom or MetaMask</div>
+                                <div className="text-[10px] text-[var(--text-dim)]">Phantom or MetaMask</div>
                               </div>
                             </button>
                           )}
@@ -488,14 +509,14 @@ export function Sidebar() {
                               setSidebarOpen(false);
                               setConnectOpen(true);
                             }}
-                            className="w-full px-4 py-2.5 text-left text-[12px] text-[#b0b0b0] hover:text-[#e0e0e0] hover:ui-inner transition-colors flex items-center gap-3"
+                            className="w-full px-4  py-2.5 text-left text-[12px] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-3"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-[#eee]/10 flex items-center justify-center">
-                              <UserIcon className="w-4 h-4 text-[#a0a0a0]" />
+                            <div className="w-8 h-8 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center">
+                              <UserIcon className="w-4 h-4 text-[var(--text-muted)]" />
                             </div>
                             <div>
                               <div className="font-medium">Profile</div>
-                              <div className="text-[11px] text-[#707070]">Edit your profile</div>
+                              <div className="text-[11px] text-[var(--text-dim)]">Edit your profile</div>
                             </div>
                           </button>
 
@@ -504,14 +525,14 @@ export function Sidebar() {
                                   setProfileOpen(false);
                                   setWalletsOpen(true);
                                 }}
-                                className="w-full px-4 py-2.5 text-left text-[12px] text-[#b0b0b0] hover:text-[#e0e0e0] hover:ui-inner transition-colors flex items-center gap-3"
+                                className="w-full px-4 py-2.5 text-left text-[12px] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-3"
                               >
-                                <div className="w-8 h-8 rounded-lg bg-[#eee]/10 flex items-center justify-center">
-                                  <Wallet className="w-4 h-4 text-[#a0a0a0]" />
+                                <div className="w-8 h-8 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center">
+                                  <Wallet className="w-4 h-4 text-[var(--text-muted)]" />
                                 </div>
                                 <div>
                                   <div className="font-medium">Wallets</div>
-                                  <div className="text-[11px] text-[#707070] -mt-0.5">Manage your wallets</div>
+                                  <div className="text-[11px] text-[var(--text-dim)] -mt-0.5">Manage your wallets</div>
                                 </div>
                               </button>
                             </>
@@ -519,13 +540,13 @@ export function Sidebar() {
                           
                           
                           {hasPremium ? (
-                            <div className="flex justify-between items-center px-5 py-2 bg-[#0f111a] text-emerald-500 text-[10px]">
+                            <div className="flex justify-between items-center px-5 py-2 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-[10px] border-t border-[var(--border)]">
                               <div className="flex items-center gap-1">
                                 <Crown className="w-3 h-3" />
                                 <span className="font-semibold">Premium Active</span>
                               </div>
                               {expiresAt && (
-                                <div className="text-[#a0a0a0] text-[9px]">
+                                <div className="text-[var(--text-dim)] text-[9px]">
                                   {new Date(expiresAt).toLocaleDateString()}
                                 </div>
                               )}
@@ -534,14 +555,14 @@ export function Sidebar() {
                             <Link
                               to="/sub"
                               onClick={() => setProfileOpen(false)}
-                              className="w-full px-4 bg-[#eee]/5 py-2.5 text-left text-[12px] text-[#b0b0b0] hover:text-[#e0e0e0] hover:ui-inner transition-colors flex items-center gap-3"
+                              className="w-full px-4 bg-[var(--accent-amber)]/10 py-2.5 text-left text-[12px] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--accent-amber)]/20 transition-colors flex items-center gap-3 border-t border-[var(--border)]"
                             >
-                              <div className="w-8 h-8 rounded-lg bg-[#eee]/10 flex items-center justify-center">
-                                <Crown className="w-4 h-4 text-[#a0a0a0]" />
+                              <div className="w-8 h-8 rounded-lg bg-[var(--bg-hover)] flex items-center justify-center">
+                                <Crown className="w-4 h-4 text-[var(--accent-amber)]" />
                               </div>
                               <div>
                                 <div className="font-medium">Buy Premium</div>
-                                <div className="text-[11px] text-[#707070]">Unlock all features</div>
+                                <div className="text-[11px] text-[var(--text-dim)]">Unlock all features</div>
                               </div>
                             </Link>
                           )}
@@ -564,7 +585,7 @@ export function Sidebar() {
             onClick={() => setSidebarOpen(false)}
           />
           <aside className="md:hidden fixed left-0 top-0 h-screen w-80 max-w-[85vw] z-50">
-            <div className="h-full bg-gradient-to-b from-[#0a0a0a] to-[#121212] border-r border-[#1f1f1f] flex flex-col">
+            <div className="h-full bg-gradient-to-b from-[var(--sidebar)] to-[var(--bg-card)] border-r border-[var(--border)] flex flex-col shadow-2xl">
               <div className="px-4 pt-6 pb-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3 min-w-0">
@@ -582,33 +603,37 @@ export function Sidebar() {
                   </div>
                   <button
                     onClick={() => setSidebarOpen(false)}
-                    className="w-9 h-9 rounded-xl bg-[#1a1a1a] border border-[#1f1f1f] flex items-center justify-center"
+                    className="w-9 h-9 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] flex items-center justify-center hover:bg-[var(--accent-pink)]/10 transition-all duration-200"
                   >
-                    <X className="w-5 h-5 text-[#e0e0e0]" />
+                    <X className="w-5 h-5 text-[var(--text-main)]" />
                   </button>
                 </div>
 
                 {/* Профіль для мобільної версії */}
-                <div className="rounded-xl bg-[#1a1a1a]/50 border border-[#1f1f1f] p-4 mb-4">
+                <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border)] p-4 mb-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className={cx(
-                      'w-12 h-12 rounded-xl flex items-center justify-center',
-                      googleUser 
-                        ? 'bg-gradient-to-br from-[#4285F4] to-[#34A853]' 
-                        : 'bg-[#2a2a2a]'
-                    )}>
-                      <span className={cx(
-                        'font-bold',
-                        googleUser ? 'text-white text-lg' : 'text-[#a0a0a0] text-base'
-                      )}>
-                        {user.avatarInitial}
-                      </span>
+                    <div className="relative w-12 h-12">
+                      {/* Аватарка */}
+                      <img
+                        src={getCurrentAvatar()?.imageUrl || 'https://via.placeholder.com/48?text=Avatar'}
+                        alt="Avatar"
+                        className="w-full h-full rounded-xl object-cover border-2 border-[#1f1f1f]"
+                      />
+                      
+                      {/* Фрейм поверх аватарки */}
+                      {profile?.avatar_frame !== "none" && getCurrentFrame()?.image_url && (
+                        <img
+                          src={getCurrentFrame()?.image_url}
+                          alt="Frame"
+                          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                        />
+                      )}
                     </div>
                     <div className="flex-1">
-                      <div className="text-[#e0e0e0] font-medium text-sm">
+                      <div className="text-[var(--text-main)] font-medium text-sm">
                         {user.name}
                       </div>
-                      <div className="text-[#707070] text-[11px]">
+                      <div className="text-[var(--text-dim)] text-[11px]">
                         {user.email || 'Guest Account'}
                       </div>
                     </div>
@@ -620,7 +645,7 @@ export function Sidebar() {
                         setSidebarOpen(false);
                         handleGoogleLogin();
                       }}
-                      className="w-full h-11 rounded-lg bg-gradient-to-r from-[#4285F4] to-[#34A853] text-white text-sm font-medium flex items-center justify-center gap-2 mb-2"
+                      className="w-full h-11 rounded-lg bg-gradient-to-r from-[#4285F4] to-[#34A853] text-white text-sm font-medium flex items-center justify-center gap-2 mb-2 hover:opacity-90 transition-opacity"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -633,18 +658,18 @@ export function Sidebar() {
                         setSidebarOpen(false);
                         setConnectOpen(true);
                       }}
-                      className="w-full h-11 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] text-white text-sm font-medium flex items-center justify-center gap-2 mb-2"
+                      className="w-full h-11 rounded-lg bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] text-white text-sm font-medium flex items-center justify-center gap-2 mb-2 hover:opacity-90 transition-opacity"
                     >
                       <LinkIcon className="w-4 h-4" />
                       Link Wallet
                     </button>
                   ) : (
                     <div className="text-center py-2 mb-2">
-                      <div className="text-[12px] text-[#3b82f6] font-medium flex items-center justify-center gap-1">
+                      <div className="text-[12px] text-[var(--accent-green)] font-medium flex items-center justify-center gap-1">
                         <Check className="w-4 h-4" />
                         Wallet Connected
                       </div>
-                      <div className="text-[10px] text-[#707070] mt-1">{user.wallet}</div>
+                      <div className="text-[10px] text-[var(--text-dim)] mt-1">{user.wallet}</div>
                     </div>
                   )}
                   
@@ -654,7 +679,7 @@ export function Sidebar() {
                         setSidebarOpen(false);
                         setWalletsOpen(true);
                       }}
-                      className="w-full h-11 rounded-lg border border-[#3b82f6]/30 text-[#3b82f6] text-sm flex items-center justify-center gap-2"
+                      className="w-full h-11 rounded-lg border border-[var(--accent-blue)]/30 text-[var(--accent-blue)] text-sm flex items-center justify-center gap-2 hover:bg-[var(--accent-blue)]/10 transition-all duration-200"
                     >
                       <Wallet className="w-4 h-4" />
                       Manage Wallets
@@ -668,11 +693,11 @@ export function Sidebar() {
                 <Section title="Main" items={main} />
                 <Section title="Earn & Stake" items={earn} />
                 <Section title="Community" items={community} />
-                <Section title="Resources" items={resources} />
+                {/* <Section title="Resources" items={resources} /> */}
               </div>
 
               {/* Соціальні посилання та логаут */}
-              <div className="px-3 py-4 border-t border-[#1f1f1f] space-y-4">
+              <div className="px-3 py-4 border-t border-[var(--border)] space-y-4">
                 <div className="flex items-center justify-center gap-3">
                   {socialLinks.map((s, i) => (
                     <a
@@ -680,7 +705,7 @@ export function Sidebar() {
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-11 h-11 rounded-xl bg-[#1a1a1a] border border-[#1f1f1f] flex items-center justify-center"
+                      className="w-11 h-11 rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] flex items-center justify-center hover:bg-[var(--accent-blue)]/10 transition-all duration-200"
                     >
                       <img src={s.icon} alt="" className="w-6 h-6 object-contain" />
                     </a>
@@ -693,7 +718,7 @@ export function Sidebar() {
                       setSidebarOpen(false);
                       setLogoutOpen(true);
                     }}
-                    className="w-full h-11 rounded-lg border border-[#ef4444]/30 text-[#ef4444] text-sm flex items-center justify-center gap-2"
+                    className="w-full h-11 rounded-lg border border-red-500/30 text-red-500 text-sm flex items-center justify-center gap-2 hover:bg-red-500/10 transition-all duration-200"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -711,23 +736,23 @@ export function Sidebar() {
       {/* Модалка виходу */}
       {logoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl bg-[#121212] border border-[#1f1f1f] p-5 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl bg-[var(--bg-card)] border border-[var(--border)] p-5 shadow-2xl">
             <div className="mb-4">
-              <h3 className="text-sm font-semibold text-[#e0e0e0]">Log out?</h3>
-              <p className="text-xs text-[#707070] mt-1">
+              <h3 className="text-sm font-semibold text-[var(--text-main)]">Log out?</h3>
+              <p className="text-xs text-[var(--text-dim)] mt-1">
                 Are you sure you want to sign out from Google?
               </p>
             </div>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setLogoutOpen(false)}
-                className="px-4 py-2 text-xs rounded-lg bg-[#1a1a1a] hover:bg-[#222] text-[#b0b0b0]"
+                className="px-4 py-2 text-xs rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--sidebar-hover)] text-[var(--text-muted)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleGoogleLogout}
-                className="px-4 py-2 text-xs rounded-lg bg-[#ef4444]/15 text-[#ef4444] hover:bg-[#ef4444]/25"
+                className="px-4 py-2 text-xs rounded-lg bg-red-500/15 text-red-500 hover:bg-red-500/25 transition-colors"
               >
                 Logout
               </button>

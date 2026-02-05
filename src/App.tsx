@@ -3,10 +3,8 @@ import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { WalletProvider } from "./context/WalletContext";
-import { ProjectProvider } from "./context/ProjectContext";
 import MainLayout from "./layouts/MainLayout";
 import LandingLayout from "./layouts/LandingLayout";
-import { PlatformBalanceProvider } from "./context/PlatformBalanceContext";
 import { PremiumProvider } from "./context/PremiumContext";
 import FloatingPromo from '@/components/StickyImageBlock';
 import { AuthCallback } from "./components/AuthCallback";
@@ -20,11 +18,9 @@ const Mining = lazy(() => import("./pages/Mining"));
 const NFTDrop = lazy(() => import("./pages/NFTDrop"));
 const NFTMarketplace = lazy(() => import("./pages/NFTMarketplace"));
 const Investments = lazy(() => import("./pages/Investments"));
-const WalletDashboard = lazy(() => import("./pages/WalletDashboard"));
 const Staking = lazy(() => import("./pages/Staking"));
 const Airdrop = lazy(() => import("./pages/Airdrop"));
 const Predictions = lazy(() => import("./pages/Predictions"));
-const Web3Identity = lazy(() => import("./pages/Web3Identity"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const Whitelist = lazy(() => import("./pages/Whitelist"));
 const ApplyForIDO = lazy(() => import("./pages/ApplyForIDO"));
@@ -42,8 +38,6 @@ export function App() {
   return (
     <BrowserRouter>
       <WalletProvider>
-        <ProjectProvider>
-          <PlatformBalanceProvider>
             <PremiumProvider>
               <Suspense
                 fallback={
@@ -72,11 +66,9 @@ export function App() {
                     <Route path="/nft-drop" element={<NFTDrop />} />
                     <Route path="/nft-marketplace" element={<NFTMarketplace />} />
                     <Route path="/investments" element={<Investments />} />
-                    <Route path="/wallet-dashboard" element={<WalletDashboard />} />
                     <Route path="/staking" element={<Staking />} />
                     <Route path="/airdrop" element={<Airdrop />} />
                     <Route path="/predictions" element={<Predictions />} />
-                    <Route path="/web3-identity" element={<Web3Identity />} />
                     <Route path="/portfolio" element={<Portfolio />} />
                     <Route path="/whitelist" element={<Whitelist />} />
                     <Route path="/apply-for-ido" element={<ApplyForIDO />} />
@@ -107,8 +99,6 @@ export function App() {
               />
               <FloatingPromo />
             </PremiumProvider>
-          </PlatformBalanceProvider>
-        </ProjectProvider>
       </WalletProvider>
     </BrowserRouter>
   );

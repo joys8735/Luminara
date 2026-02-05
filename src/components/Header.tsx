@@ -25,7 +25,6 @@ import {
 import ThemeToggle from "../components/ThemeToggle";
 import { useWallet } from '../context/WalletContext';
 import { Link, useNavigate } from 'react-router-dom';
-import WalletConnect from './WalletConnect';
 import AuthModal from './AuthModal';
 import { toast } from 'sonner';
 import { button } from 'framer-motion/client';
@@ -340,22 +339,23 @@ export function Header() {
     <>
       {/* HEADER */}
       
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[var(--header)] border-b border-[#1f1f1f]/60 flex items-center justify-between px-10  z-40 md:left-64">
+      <header className="fixed top-3 ml-64 left-[28vw] -translate-x-1/3 h-16 w-[calc(80vw-3rem)] max-w-6xl bg-gradient-to-r from-[var(--header)]/80 via-[var(--bg-card)]/60 to-[var(--header)]/80 backdrop-blur-xl border border-[var(--header-border)] shadow-md flex items-center justify-between px-5 z-40 rounded-full">
         {/* LEFT: Мобильный вид */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Десктоп вид цены */}
-          <div className="hidden md:flex relative items-center h-11 gap-3 px-3 py-2 ui-card rounded-lg">
-            <div className="pointer-events-none absolute inset-0 rounded-xl card-gradient-soft"/>
+          <ThemeToggle />
+          <div className="hidden md:flex relative items-center h-12 gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-[var(--accent-blue)]/10 to-[var(--accent-purple)]/10 ">
+            {/* <div className="pointer-events-none absolute inset-0 rounded-xl card-gradient-soft"/> */}
             <div className="flex flex-col">
-              <span className="text-[10px] text-[#707070]">Price Sale</span>
-              <span className="text-[12px] font-semibold text-[#3b82f6]">
-               $0.04 {/* $ {tokenPrice.toFixed(4)} */}
+              <span className="text-[10px] text-[var(--text-dim)]">Price Sale</span>
+              <span className="text-[12px] font-semibold bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] bg-clip-text text-transparent">
+               $0.04
               </span>
             </div>
             
             <button
               onClick={() => navigate('/token-sale')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[#eee]/15 ui-inner text-[#e0e0e0] transition-colors text-[11px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-[var(--accent-blue)] bg-[var(--bg-card)] text-[var(--text-main)] transition-all duration-200 text-[11px] border border-[var(--border-light)]"
             >
               <img src="../icons/usdt.png" alt="svt" className="w-4 h-4" />
               <span className="font-medium">Buy SVT</span>
@@ -371,17 +371,17 @@ export function Header() {
           {!hasPremium && (
             <Link 
               to="/sub" 
-              className="md:hidden w-9 h-9 rounded-lg bg-[#1a1a1a] border border-[#1f1f1f] flex items-center justify-center"
+              className="md:hidden w-9 h-9 rounded-lg bg-[var(--bg-card)] border border-[var(--accent-amber)]/30 flex items-center justify-center hover:bg-[var(--accent-amber)]/10 transition-all duration-200"
             >
-              <Crown className="w-4 h-4 text-[#facc15]" />
+              <Crown className="w-4 h-4 text-[var(--accent-amber)]" />
             </Link>
           )}
 
           <button
             onClick={() => navigate('/airdrop')}
-            className="w-9 h-9 rounded-lg ui-card hover:ui-inner flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] hover:bg-[var(--accent-green)]/10 hover:border-[var(--accent-green)]/30 flex items-center justify-center transition-all duration-200"
           >
-            <Gift className="w-4 h-4 text-[#a0a0a0]" />
+            <Gift className="w-4 h-4 text-[var(--text-muted)] hover:text-[var(--accent-green)]" />
           </button>
 
           {/* 🔔 Notifications */}
@@ -391,23 +391,23 @@ export function Header() {
                 setShowNotifDropdown((v) => !v);
                 setShowNetworkDropdown(false);
               }}
-              className="relative w-9 h-9 rounded-lg ui-card hover:ui-inner flex items-center justify-center transition-colors"
+              className="relative w-9 h-9 rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] hover:bg-[var(--accent-blue)]/10 hover:border-[var(--accent-blue)]/30 flex items-center justify-center transition-all duration-200"
             >
-              <Bell className="w-4 h-4 text-[#a0a0a0]" />
+              <Bell className="w-4 h-4 text-[var(--text-muted)]" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#3b82f6] rounded-full" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[var(--accent-pink)] rounded-full animate-pulse" />
               )}
             </button>
 
             {/* Десктоп DROPDOWN */}
             {showNotifDropdown && (
-              <div className="hidden md:block absolute right-0 mt-2 w-80 bg-[var(--header)] border border-[#1f1f1f] rounded-xl shadow-2xl z-50">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f1f]">
+              <div className="hidden md:block absolute right-0 mt-2 w-80 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-2xl z-50">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
                   <div>
-                    <div className="text-xs font-semibold text-[#e0e0e0]">
+                    <div className="text-xs font-semibold text-[var(--text-main)]">
                       Notifications
                     </div>
-                    <div className="text-[10px] text-[#707070]">
+                    <div className="text-[10px] text-[var(--text-dim)]">
                       {unreadCount > 0
                         ? `${unreadCount} unread`
                         : 'All caught up'}
@@ -419,7 +419,7 @@ export function Header() {
                         prev.map((n) => ({ ...n, status: 'read' }))
                       )
                     }
-                    className="text-[10px] text-[#3b82f6] hover:underline"
+                    className="text-[10px] text-[var(--accent-blue)] hover:text-[var(--accent-purple)] transition-colors"
                   >
                     Mark all read
                   </button>
@@ -431,38 +431,38 @@ export function Header() {
                     let icon: JSX.Element;
                     if (n.type === 'investment')
                       icon = (
-                        <TrendingUp className="w-4 h-4 text-[#22c55e]" />
+                        <TrendingUp className="w-4 h-4 text-[var(--accent-green)]" />
                       );
                     else if (n.type === 'airdrop')
-                      icon = <Gift className="w-4 h-4 text-[#facc15]" />;
+                      icon = <Gift className="w-4 h-4 text-[var(--accent-amber)]" />;
                     else if (n.type === 'stake')
-                      icon = <Shield className="w-4 h-4 text-[#3b82f6]" />;
-                    else icon = <Activity className="w-4 h-4 text-[#a855f7]" />;
+                      icon = <Shield className="w-4 h-4 text-[var(--accent-blue)]" />;
+                    else icon = <Activity className="w-4 h-4 text-[var(--accent-purple)]" />;
 
                     return (
                       <button
                         key={n.id}
                         onClick={() => handleNotificationClick(n)}
-                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-[#1a1a1a] transition-colors ${
-                          isUnread ? 'bg-[#1a1a1a]/60' : ''
+                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-[var(--bg-hover)] transition-colors ${
+                          isUnread ? 'bg-[var(--accent-blue)]/5' : ''
                         }`}
                       >
                         <div className="mt-0.5">{icon}</div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-xs font-semibold text-[#e0e0e0]">
+                            <span className="text-xs font-semibold text-[var(--text-main)]">
                               {n.title}
                             </span>
-                            <span className="text-[10px] text-[#707070]">
+                            <span className="text-[10px] text-[var(--text-dim)]">
                               {n.time}
                             </span>
                           </div>
-                          <p className="text-[11px] text-[#a0a0a0]">
+                          <p className="text-[11px] text-[var(--text-muted)]">
                             {n.description}
                           </p>
                         </div>
                         {isUnread && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] mt-1.5" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-green)] mt-1.5" />
                         )}
                       </button>
                     );
@@ -474,7 +474,7 @@ export function Header() {
                     setShowNotifDropdown(false);
                     navigate('/notifications');
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2 border-t border-[#1f1f1f] text-[11px] text-[#3b82f6] hover:bg-[#1a1a1a] transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2 border-t border-[var(--border)] text-[11px] text-[var(--accent-blue)] hover:bg-[var(--bg-hover)] transition-colors"
                 >
                   View all notifications
                   <ArrowRight className="w-3 h-3" />
@@ -483,7 +483,7 @@ export function Header() {
             )}
           </div>
 
-          <div className="block w-0.5 h-7 border-l border-[#eee]/20"></div>
+          <div className="block w-0.5 h-7 border-l border-[var(--border-light)]"></div>
 
           {/* 🌐 Network Selector */}
           <div className="relative" ref={networkRef}>
@@ -492,20 +492,20 @@ export function Header() {
                 setShowNetworkDropdown((v) => !v);
                 setShowNotifDropdown(false);
               }}
-              className="flex items-center gap-2 rounded-lg bg-[#eee]/10 hover:bg-[#0a1025] px-3 py-[8px] transition-colors"
+              className="flex items-center gap-2 rounded-lg hover:bg-[var(--bg-hover)] px-3 py-[8px] transition-all duration-200 border border-transparent hover:border-[var(--border-light)]"
             >
               {/* Network icon */}
               <div className="flex h-6 w-6 items-center justify-center rounded-lg ">
                 <img
                   src={currentNetwork?.icon || "/icons/bnb.png"}
                   alt={currentNetwork?.shortName || "Network"}
-                  className="h-5 w-5 object-contain"
+                  className="h-6 w-6 object-contain"
                 />
               </div>
 
               {/* Network info */}
               <div className="flex-1 leading-tight text-left">
-                <div className="text-[11px] hidden md:block font-medium text-[#e0e0e0]">
+                <div className="text-[11px] hidden md:block font-medium text-[var(--text-main)]">
                   Network
                   {chainId && !isCorrectNetwork && (
                     <span className="ml-1 px-1.5 py-0.5 text-[9px] bg-red-500/20 text-red-400 rounded">
@@ -513,43 +513,48 @@ export function Header() {
                     </span>
                   )}
                 </div>
-                <div className="text-[10px] hidden md:block text-[#707070]">
+                <div className="text-[10px] hidden md:block text-[var(--text-dim)]">
                    {currentNetwork?.name || "Not Connected"}
-                  {/* {chainId && (
-                    <span className="ml-1 text-[9px] opacity-70">
-                      ({chainId})
-                    </span>
-                  )} */}
                 </div>
               </div>
             </button>
 
             {/* Network Dropdown */}
             {showNetworkDropdown && (
-              <div className="absolute right-0 mt-3 w-64 ui-card rounded-xl shadow-2xl z-50">
-                <div className="p-3 border-b border-[#1f1f1f]">
-                  <div className="text-xs font-semibold text-[#e0e0e0]">
+              <div className="absolute right-0 top-full mt-0 w-72 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-2xl z-50 overflow-hidden dropdown-enter">
+                {/* Header */}
+                <div className="px-4 py-3 border-b border-[var(--border)] bg-gradient-to-r from-[var(--accent-blue)]/5 to-[var(--accent-purple)]/5">
+                  <div className="text-xs font-semibold text-[var(--text-main)]">
                     Select Network
                   </div>
-                  <div className="text-[10px] text-[#707070]">
+                  <div className="text-[10px] text-[var(--text-dim)] mt-1">
                     {isCorrectNetwork ? (
-                      <span className="text-green-400">✓ Correct network</span>
+                      <span className="text-[var(--accent-green)] font-medium">✓ Correct network</span>
                     ) : (
-                      <span className="text-red-400">⚠ Switch to {targetNetwork.name}</span>
+                      <span className="text-red-400 font-medium">⚠ Switch to {targetNetwork.name}</span>
                     )}
                   </div>
                 </div>
 
-                <div className="py-2 max-h-60 overflow-y-auto">
-                  {Object.values(NETWORKS).map((network) => (
+                {/* Networks List */}
+                <div className="py-2 max-h-64 overflow-y-auto">
+                  {Object.values(NETWORKS).map((network, idx) => (
                     <button
                       key={network.chainId}
                       onClick={() => handleSwitchNetwork(network.chainId)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#eee]/10 transition-colors ${
-                        chainId === network.chainId ? 'ui-inner' : ''
-                      } ${
-                        network.chainId === TARGET_NETWORK_ID ? 'border-l-1 border-[#3b82f6]' : ''
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-200 group ${
+                        chainId === network.chainId 
+                          ? 'bg-[var(--accent-blue)]/15 border-l-2 border-[var(--accent-blue)]' 
+                          : 'hover:bg-[var(--bg-hover)] border-l-2 border-transparent'
                       }`}
+                      style={{
+                        animation: `slideDownFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                        animationDelay: `${idx * 0.05}s`,
+                        opacity: 0,
+                      }}
+                      onAnimationEnd={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
                     >
                       <img
                         src={network.icon}
@@ -557,38 +562,39 @@ export function Header() {
                         className="h-6 w-6 object-contain"
                       />
                       <div className="flex-1">
-                        <div className="text-xs font-medium text-[#e0e0e0]">
+                        <div className="text-xs font-medium text-[var(--text-main)] group-hover:text-[var(--accent-blue)] transition-colors">
                           {network.shortName}
                           {network.chainId === TARGET_NETWORK_ID && (
-                            <span className="ml-2 text-[10px] bg-[#3b82f6]/20 text-[#3b82f6] px-1.5 py-0.5 rounded">
+                            <span className="ml-2 text-[9px] bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] px-1.5 py-0.5 rounded font-semibold">
                               Target
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-[#707070] truncate">
+                        <div className="text-[10px] text-[var(--text-dim)] truncate">
                           {network.name}
                         </div>
                       </div>
                       {chainId === network.chainId && (
-                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] animate-pulse" />
                       )}
                     </button>
                   ))}
                 </div>
 
+                {/* Action Button */}
                 {!isCorrectNetwork && chainId && walletType === 'metamask' && (
                   <button
                     onClick={() => handleSwitchNetwork(TARGET_NETWORK_ID)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border-t border-[#1f1f1f] text-xs font-medium text-white bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] hover:opacity-90 transition-opacity"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border-t border-[var(--border)] text-xs font-semibold text-white bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] hover:shadow-lg hover:shadow-[var(--accent-blue)]/30 transition-all duration-200 group"
                   >
-                    <Shield className="w-3.5 h-3.5" />
+                    <Shield className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                     Switch to {targetNetwork.shortName}
                   </button>
                 )}
 
                 {walletType !== 'metamask' && (
-                  <div className="p-3 border-t border-[#1f1f1f]">
-                    <div className="text-[10px] text-[#a0a0a0] text-center">
+                  <div className="p-3 border-t border-[var(--border)] bg-[var(--bg-hover)]/50">
+                    <div className="text-[10px] text-[var(--text-muted)] text-center">
                       Network switching available only for MetaMask
                     </div>
                   </div>
@@ -605,12 +611,12 @@ export function Header() {
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex h-9 items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1a1a1a] hover:bg-[#222] border border-[#1f1f1f] text-[#e0e0e0] transition-colors text-xs"
+                className="flex h-9 items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] hover:bg-[var(--accent-blue)]/10 border border-[var(--border-light)] text-[var(--text-main)] transition-all duration-200 text-xs font-medium"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span className="font-medium">Sign In</span>
+                <span>Sign In</span>
               </button>
-              <WalletConnect />
+             
             </div>
           )}
 
@@ -619,9 +625,9 @@ export function Header() {
             <div className="md:hidden">
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="w-9 h-9 rounded-lg bg-[#1a1a1a] border border-[#1f1f1f] flex items-center justify-center"
+                className="w-9 h-9 rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] flex items-center justify-center hover:bg-[var(--accent-blue)]/10 transition-all duration-200"
               >
-                <LogIn className="w-4 h-4 text-[#e0e0e0]" />
+                <LogIn className="w-4 h-4 text-[var(--text-main)]" />
               </button>
             </div>
           )}
@@ -630,7 +636,7 @@ export function Header() {
       
 
       {/* Отступ для мобильного хедера */}
-      <div className="h-16 md:hidden" />
+      <div className="h-24 md:h-1" />
 
       <AuthModal
         isOpen={showAuthModal}

@@ -9,6 +9,7 @@ export default defineConfig({
 server: {
     host: true,        // 👈 слухати 0.0.0.0
     port: 5173,
+    hmr: { overlay: false }, // ← прибирає error overlay якщо лагає
     strictPort: true,
     allowedHosts: [
     '.ngrok-free.dev',

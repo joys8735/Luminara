@@ -261,10 +261,7 @@ export function WalletConnectModal({
                   >
                     {profile ? (
                       <>
-                        {/* <UserProfile 
-                            googleUser={googleUser} 
-                            onEditClick={() => setShowProfileEditor(true)} 
-                          /> */}
+                       
                         <ProfileEditor
                           isOpen={showProfileEditor}
                           onClose={() => {

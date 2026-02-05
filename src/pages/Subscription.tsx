@@ -37,12 +37,12 @@ type PremiumModalMode = "purchase" | "manage" | "admin";
 
 const Subscription: React.FC = () => {
   const { connected, walletAddress, signer, walletType, isConnecting } = useWallet() as any;
-  
-  const { 
-    hasPremium, 
-    expiresAt, 
+
+  const {
+    hasPremium,
+    expiresAt,
     isLoading,
-    subscribe, 
+    subscribe,
     cancelSubscription,
     calculateBnbAmount,
     getBnbPrice,
@@ -76,10 +76,10 @@ const Subscription: React.FC = () => {
   const [adminInfo, setAdminInfo] = useState<any>(null);
   const [adminLoading, setAdminLoading] = useState(false);
   // Додаємо нові стани
-const [priceLoading, setPriceLoading] = useState(false);
-const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-const [isWalletReady, setIsWalletReady] = useState(false);
+  const [isWalletReady, setIsWalletReady] = useState(false);
   const [isCheckingWallet, setIsCheckingWallet] = useState(false);
   const walletCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -94,7 +94,7 @@ const [isWalletReady, setIsWalletReady] = useState(false);
   ];
 
   const isAdmin = connected && walletAddress && ADMIN_ADDRESSES.includes(walletAddress.toLowerCase());
-// Ефект для перевірки готовності гаманця
+  // Ефект для перевірки готовності гаманця
   useEffect(() => {
     const checkWalletConnection = () => {
       // Якщо гаманець підключено та є адреса, вважаємо готовим
@@ -114,7 +114,7 @@ const [isWalletReady, setIsWalletReady] = useState(false);
       // Спроба перевірити кожні 500ms протягом 10 секунд
       let attempts = 0;
       const maxAttempts = 20; // 10 секунд (20 * 500ms)
-      
+
       const attemptConnection = () => {
         if (checkWalletConnection() || attempts >= maxAttempts) {
           if (walletCheckTimeoutRef.current) {
@@ -127,11 +127,11 @@ const [isWalletReady, setIsWalletReady] = useState(false);
           }
           return;
         }
-        
+
         attempts++;
         walletCheckTimeoutRef.current = setTimeout(attemptConnection, 500);
       };
-      
+
       attemptConnection();
     } else if (connected) {
       checkWalletConnection();
@@ -200,8 +200,11 @@ const [isWalletReady, setIsWalletReady] = useState(false);
 
   // Виправлена перевірка allowance - тільки коли гаманець готовий
   const checkAllowance = useCallback(async () => {
-    if (!isWalletReady || purchaseToken !== "USDT") return;
-    
+    if (!isWalletReady || !connected || !walletAddress || purchaseToken !== "USDT") {
+      setNeedsApproval(false);
+      return;
+    }
+
     setIsCheckingWallet(true);
     try {
       const allowanceInfo = await checkUSDTAllowance();
@@ -210,24 +213,22 @@ const [isWalletReady, setIsWalletReady] = useState(false);
       setNeedsApproval(!allowanceInfo.hasAllowance);
     } catch (error) {
       console.error("Error checking allowance:", error);
-      // М'яка обробка помилки - не показуємо користувачеві
+      setNeedsApproval(false);
     } finally {
       setIsCheckingWallet(false);
     }
-  }, [isWalletReady, purchaseToken, checkUSDTAllowance]);
+  }, [isWalletReady, connected, walletAddress, purchaseToken, checkUSDTAllowance]);
 
-  // Запускаємо checkAllowance ТІЛЬКИ після підключення гаманця
-  // useEffect(() => {
-  //   if (connected && walletAddress && purchaseToken === "USDT") {
-  //     checkAllowance();
-  //   }
-  // }, [connected, walletAddress, purchaseToken]);
-
-useEffect(() => {
-    if (isWalletReady && purchaseToken === "USDT") {
+  // Запускаємо checkAllowance ТІЛЬКИ після підключення гаманця та відкриття модалки
+  useEffect(() => {
+    if (isWalletReady && connected && walletAddress && purchaseToken === "USDT" && purchaseOpen) {
       checkAllowance();
+    } else {
+      setNeedsApproval(false);
+      setUsdtBalance("0");
+      setUsdtAllowance("0");
     }
-  }, [isWalletReady, purchaseToken, checkAllowance]);
+  }, [isWalletReady, connected, walletAddress, purchaseToken, purchaseOpen, checkAllowance]);
 
   const formatExpiry = (value?: string | null) => {
     if (!value) return null;
@@ -245,12 +246,12 @@ useEffect(() => {
     const now = new Date();
     const expiry = new Date(expiresAt);
     const diffMs = expiry.getTime() - now.getTime();
-    
+
     if (diffMs <= 0) return "Expired";
-    
+
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
+
     if (days > 0) {
       return `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''}`;
     } else {
@@ -279,29 +280,29 @@ useEffect(() => {
   };
 
   const handleApproveUSDT = async () => {
-  if (!connected || !walletAddress) return;
-  
-  setIsApproving(true);
-  try {
-    toast.info('Please confirm the USDT approval transaction in your wallet...');
-    
-    await approveUSDT(currentUsdtAmount, billingCycle === "monthly");
-    
-    // Оновлюємо статус
-    await checkAllowance();
-    
-    // Примусово скидаємо needsApproval після успішного апруву
-    setNeedsApproval(false);
-    
-    toast.success('USDT approved successfully! You can now proceed with payment.');
-    
-  } catch (error: any) {
-    console.error('Approve error:', error);
-    toast.error(`Approval failed: ${error.message || 'Unknown error'}`);
-  } finally {
-    setIsApproving(false);
-  }
-};
+    if (!connected || !walletAddress) return;
+
+    setIsApproving(true);
+    try {
+      toast.info('Please confirm the USDT approval transaction in your wallet...');
+
+      await approveUSDT(currentUsdtAmount, billingCycle === "monthly");
+
+      // Оновлюємо статус
+      await checkAllowance();
+
+      // Примусово скидаємо needsApproval після успішного апруву
+      setNeedsApproval(false);
+
+      toast.success('USDT approved successfully! You can now proceed with payment.');
+
+    } catch (error: any) {
+      console.error('Approve error:', error);
+      toast.error(`Approval failed: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
   const handleConfirmPurchase = async () => {
     if (!connected || !walletAddress || !signer) {
@@ -318,14 +319,14 @@ useEffect(() => {
     try {
       const isMonthly = billingCycle === "monthly";
       const payWithBNB = purchaseToken === "BNB";
-      
+
       await subscribe(isMonthly, payWithBNB, currentBnbAmount);
-      
+
       setPurchaseOpen(false);
       toast.success(`🎉 Premium activated successfully!`);
     } catch (error: any) {
       console.error("Purchase error details:", error);
-      
+
       if (error.message.includes("Wallet not properly connected")) {
         toast.error("Please check your wallet connection and try again.");
       } else if (error.message.includes("insufficient funds") || error.message.includes("Insufficient")) {
@@ -355,7 +356,7 @@ useEffect(() => {
       setPurchaseOpen(false);
     } catch (error: any) {
       console.error("Cancel error:", error);
-      
+
       if (error.message.includes("user rejected") || error.message.includes("denied")) {
         toast.error("Transaction was rejected");
       } else {
@@ -446,11 +447,10 @@ useEffect(() => {
       type="button"
       onClick={onClick}
       disabled={loading || !connected || walletType !== 'metamask'}
-      className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-medium transition-all ${
-        connected && walletType === 'metamask' && !loading
+      className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-medium transition-all ${connected && walletType === 'metamask' && !loading
           ? "bg-[#3b82f6] hover:bg-[#2563eb] text-white"
           : "bg-[#121212] border border-[#1f1f1f] text-[#707070] cursor-not-allowed"
-      }`}
+        }`}
     >
       {loading ? (
         <>
@@ -500,7 +500,7 @@ useEffect(() => {
                   )}
                   Load Contract Info
                 </button>
-                
+
                 <button
                   onClick={handlePauseContract}
                   className="flex items-center justify-center gap-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 px-4 py-3 text-sm text-white transition-all"
@@ -508,7 +508,7 @@ useEffect(() => {
                   <PauseCircle className="w-4 h-4" />
                   Pause Contract
                 </button>
-                
+
                 <button
                   onClick={handleUnpauseContract}
                   className="flex items-center justify-center gap-2 rounded-xl bg-green-500/20 hover:bg-green-500/30 px-4 py-3 text-sm text-white transition-all"
@@ -517,6 +517,7 @@ useEffect(() => {
                   Unpause Contract
                 </button>
               </div>
+              
 
               {adminInfo && (
                 <div className="bg-black/30 rounded-xl p-4 space-y-3">
@@ -536,7 +537,7 @@ useEffect(() => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="text-xs text-[#a0a0a0]">
                     <div className="flex items-center justify-between">
                       <span>BNB Price:</span>
@@ -561,38 +562,38 @@ useEffect(() => {
       {/* HERO */}
       <div className="ui-card backdrop-blur-sm rounded-2xl p-6 md:p-7 relative overflow-hidden">
         <div className="pointer-events-none absolute -inset-0.5 opacity-15 card-gradient-soft" />
-        <img src="back2.png" className="absolute top-0 left-0 w-full h-full object-cover"  alt="" />
+        <img src="back2.png" className="absolute top-0 left-0 w-full h-full object-cover" alt="" />
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-xl space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full ui-inner px-3 py-1 text-[11px] text-[#a0a0a0]">
               <Crown className="w-3 h-3 text-[#facc15]" />
               SolanaVerse Premium • one subscription across the whole app
             </div>
-            
+
             <h1 className="text-4xl font-bold ui-bg-text">
-                            Upgrade your experience with{" "} <br />
-                            <motion.span
-                              className="text-4xl font-bold"
-                              style={{
-                                background:
-                                  "linear-gradient(90deg, #3b82f6, #eee, #a855f7)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                                backgroundClip: "text",
-                                backgroundSize: "200% 100%",
-                              }}
-                              animate={{
-                                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                              }}
-                              transition={{
-                                duration: 5,
-                                repeat: Infinity,
-                                ease: "linear",
-                              }}
-                            >
-                              SolanaVerse Premium
-                            </motion.span>
-                          </h1>
+              Upgrade your experience with{" "} <br />
+              <motion.span
+                className="text-4xl font-bold"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6, #eee, #a855f7)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  backgroundSize: "200% 100%",
+                }}
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                SolanaVerse Premium
+              </motion.span>
+            </h1>
             <p className="text-sm md:text-[13px] text-[#a0a0a0] leading-relaxed">
               Unlock AI-based suggestions, better yield visibility, boosted rewards
               and access multipliers across staking, predictions and airdrop missions.
@@ -681,50 +682,46 @@ useEffect(() => {
 
                 {/* Billing toggle */}
                 <div className="flex items-center justify-between text-[11px]">
-  <span className="text-[#a0a0a0]">Choose billing cycle</span>
-  <div className="relative ui-inner border border-[#1f1f1f] py-1.5 rounded-full p-2">
-    {/* Анімований бекграунд слайдер */}
-    <div 
-      className={`absolute top-1 h-[calc(100%-0.5rem)] rounded-full bg-gradient-to-r from-[#6b21a8] to-[#3b82f6] transition-all duration-300 ease-in-out ${
-        billingCycle === "monthly" 
-          ? "left-1 w-[70px]" 
-          : "left-[70px] w-[88px]"
-      }`}
-    />
-    
-    <div className="relative flex items-center gap-1 z-10">
-      <button
-        type="button"
-        onClick={() => setBillingCycle("monthly")}
-        className={`px-1.5 py-0.5 rounded-full transition-colors duration-300 ease-in-out relative z-20 w-[60px] ${
-          billingCycle === "monthly"
-            ? "text-white"
-            : "text-[#a0a0a0] hover:text-[#d1d5db]"
-        }`}
-      >
-        Monthly
-      </button>
-      <button
-        type="button"
-        onClick={() => setBillingCycle("yearly")}
-        className={`px-3.5 py-0.5 rounded-full transition-colors duration-300 ease-in-out relative z-20 w-[85px] flex items-center justify-center ${
-          billingCycle === "yearly"
-            ? "text-white"
-            : "text-[#a0a0a0] hover:text-[#d1d5db]"
-        }`}
-      >
-        Yearly
-        <span className={`ml-1 text-[9px] transition-colors duration-300 ease-in-out ${
-          billingCycle === "yearly"
-            ? "text-white font-medium"
-            : "text-[#bfdbfe]"
-        }`}>
-          save
-        </span>
-      </button>
-    </div>
-  </div>
-</div>
+                  <span className="text-[#a0a0a0]">Choose billing cycle</span>
+                  <div className="relative ui-inner border border-[#1f1f1f] py-1.5 rounded-full p-2">
+                    {/* Анімований бекграунд слайдер */}
+                    <div
+                      className={`absolute top-1 h-[calc(100%-0.5rem)] rounded-full bg-gradient-to-r from-[#6b21a8] to-[#3b82f6] transition-all duration-300 ease-in-out ${billingCycle === "monthly"
+                          ? "left-1 w-[70px]"
+                          : "left-[70px] w-[88px]"
+                        }`}
+                    />
+
+                    <div className="relative flex items-center gap-1 z-10">
+                      <button
+                        type="button"
+                        onClick={() => setBillingCycle("monthly")}
+                        className={`px-1.5 py-0.5 rounded-full transition-colors duration-300 ease-in-out relative z-20 w-[60px] ${billingCycle === "monthly"
+                            ? "text-white"
+                            : "text-[#a0a0a0] hover:text-[#d1d5db]"
+                          }`}
+                      >
+                        Monthly
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBillingCycle("yearly")}
+                        className={`px-3.5 py-0.5 rounded-full transition-colors duration-300 ease-in-out relative z-20 w-[85px] flex items-center justify-center ${billingCycle === "yearly"
+                            ? "text-white"
+                            : "text-[#a0a0a0] hover:text-[#d1d5db]"
+                          }`}
+                      >
+                        Yearly
+                        <span className={`ml-1 text-[9px] transition-colors duration-300 ease-in-out ${billingCycle === "yearly"
+                            ? "text-white font-medium"
+                            : "text-[#bfdbfe]"
+                          }`}>
+                          save
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Price */}
                 <div className="space-y-1.5">
@@ -769,59 +766,57 @@ useEffect(() => {
 
                 {/* CTA buttons */}
                 <div className="space-y-2">
-  {/* Кнопка Activate Premium з вашим стилем */}
-  <button
-    onClick={handleSubscribeClick}
-    disabled={isLoading || !connected || walletType !== 'metamask'}
-    className={`btn-gradient group relative w-full h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-1000 overflow-hidden active:scale-95 ${
-      (isLoading || !connected || walletType !== 'metamask') ? 'opacity-50 cursor-not-allowed' : ''
-    }`}
-  >
-    <div className="btn-inner absolute w-[99.5%] h-[95%] rounded-xl flex items-center justify-center transition-all duration-1000 group-hover:bg-gradient-to-r group-hover:from-transparent group-hover:to-transparent">
-      <span className="flex items-center gap-1 text-[#ffd277] font-semibold">
-        {isLoading ? (
-          "Processing..."
-        ) : (
-          <>
-            {hasPremium ? "Manage / extend Premium" : "Activate Premium"}
-            <ArrowRight className="w-4 h-4" />
-          </>
-        )}
-      </span>
-    </div>
-  </button>
+                  {/* Кнопка Activate Premium з вашим стилем */}
+                  <button
+                    onClick={handleSubscribeClick}
+                    disabled={isLoading || !connected || walletType !== 'metamask'}
+                    className={`btn-gradient group relative w-full h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-1000 overflow-hidden active:scale-95 ${(isLoading || !connected || walletType !== 'metamask') ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                  >
+                    <div className="btn-inner absolute w-[99.5%] h-[95%] rounded-xl flex items-center justify-center transition-all duration-1000 group-hover:bg-gradient-to-r group-hover:from-transparent group-hover:to-transparent">
+                      <span className="flex items-center gap-1 text-[#ffd277] font-semibold">
+                        {isLoading ? (
+                          "Processing..."
+                        ) : (
+                          <>
+                            {hasPremium ? "Manage / extend Premium" : "Activate Premium"}
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  </button>
 
-  {/* Кнопка Cancel Plan */}
-  {/* Кнопка Cancel Plan - показується тільки для преміум користувачів */}
-  {hasPremium && (
-    <button
-      type="button"
-      onClick={handleCancelPlan}
-      disabled={isLoading}
-      className={`w-full rounded-xl border px-4 py-2 text-[11px] transition-all ${
-        !isLoading
-          ? "border-[#1f1f1f] bg-[#121212] text-[#a0a0a0] hover:border-[#3b82f6]/60 hover:text-[#3b82f6] cursor-pointer"
-          : "border-[#1f1f1f] bg-[#121212] text-[#444] cursor-not-allowed"
-      }`}
-    >
-      {isLoading ? "Processing..." : "Cancel plan"}
-    </button>
-  )}
+                  {/* Кнопка Cancel Plan */}
+                  {/* Кнопка Cancel Plan - показується тільки для преміум користувачів */}
+                  {hasPremium && (
+                    <button
+                      type="button"
+                      onClick={handleCancelPlan}
+                      disabled={isLoading}
+                      className={`w-full rounded-xl border px-4 py-2 text-[11px] transition-all ${!isLoading
+                          ? "border-[#1f1f1f] bg-[#121212] text-[#a0a0a0] hover:border-[#3b82f6]/60 hover:text-[#3b82f6] cursor-pointer"
+                          : "border-[#1f1f1f] bg-[#121212] text-[#444] cursor-not-allowed"
+                        }`}
+                    >
+                      {isLoading ? "Processing..." : "Cancel plan"}
+                    </button>
+                  )}
 
-  {/* Повідомлення про підключення гаманця */}
-  {!connected && (
-    <div className="text-[10px] text-[#707070] text-center">
-      Connect your wallet first to activate Premium for this account.
-    </div>
-  )}
+                  {/* Повідомлення про підключення гаманця */}
+                  {!connected && (
+                    <div className="text-[10px] text-[#707070] text-center">
+                      Connect your wallet first to activate Premium for this account.
+                    </div>
+                  )}
 
-  {/* Повідомлення про тип гаманця */}
-  {connected && walletType !== 'metamask' && (
-    <div className="text-[10px] text-yellow-500 text-center">
-      Premium subscription requires MetaMask (EVM wallet)
-    </div>
-  )}
-</div>
+                  {/* Повідомлення про тип гаманця */}
+                  {connected && walletType !== 'metamask' && (
+                    <div className="text-[10px] text-yellow-500 text-center">
+                      Premium subscription requires MetaMask (EVM wallet)
+                    </div>
+                  )}
+                </div>
 
                 {/* Disclaimer */}
                 <div className="flex items-start gap-2 text-[10px] text-[#707070]">
@@ -987,11 +982,10 @@ useEffect(() => {
                         </div>
                         <div className="h-1.5 rounded-full bg-[#111827] overflow-hidden">
                           <div
-                            className={`h-full bg-gradient-to-r from-[#22c1c3] via-[#3b82f6] to-[#a855f7] ${
-                              !hasPremium && row.label !== "Staking & pools"
+                            className={`h-full bg-gradient-to-r from-[#22c1c3] via-[#3b82f6] to-[#a855f7] ${!hasPremium && row.label !== "Staking & pools"
                                 ? "opacity-40"
                                 : "opacity-90"
-                            }`}
+                              }`}
                             style={{ width: `${row.value}%` }}
                           />
                         </div>
@@ -1084,11 +1078,10 @@ useEffect(() => {
                     <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
                     <div className="absolute top-2 right-2 flex items-center gap-1">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] border ${
-                          hasPremium
+                        className={`px-2 py-0.5 rounded-full text-[10px] border ${hasPremium
                             ? "bg-[#022c22] text-emerald-300 border-emerald-500/40"
                             : "bg-[#111827] text-[#a0a0a0] border-[#1f1f1f]"
-                        }`}
+                          }`}
                       >
                         {hasPremium ? "Unlocked for you" : "See what you get"}
                       </span>
@@ -1116,9 +1109,8 @@ useEffect(() => {
                         {hasPremium ? "Open module" : "Preview flow"}
                       </span>
                       <ArrowRight
-                        className={`w-3 h-3 transition-transform group-hover:translate-x-1 ${
-                          hasPremium ? "text-[#3b82f6]" : "text-[#707070]"
-                        }`}
+                        className={`w-3 h-3 transition-transform group-hover:translate-x-1 ${hasPremium ? "text-[#3b82f6]" : "text-[#707070]"
+                          }`}
                       />
                     </div>
                   </div>
@@ -1187,11 +1179,10 @@ useEffect(() => {
                             type="button"
                             onClick={() => setPurchaseToken(token)}
                             disabled={isProcessing}
-                            className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] transition-all ${
-                              purchaseToken === token
+                            className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] transition-all ${purchaseToken === token
                                 ? "border-[#3b82f6] ui-inner"
                                 : "border-[#1f1f1f]/10 ui-inner hover:border-[#3b82f6]/50"
-                            }`}
+                              }`}
                           >
                             <img
                               src={`/icons/${token.toLowerCase()}.png`}
@@ -1210,14 +1201,14 @@ useEffect(() => {
                           </button>
                         ))}
                       </div>
-                      
-                      
+
+
                     </div>
 
                     {/* USDT Approval Section */}
-                    
 
-                  
+
+
                     {/* Price summary */}
                     <div className="ui-inner rounded-xl p-3 text-[11px] space-y-2">
                       <div className="flex items-center justify-between">
@@ -1227,45 +1218,45 @@ useEffect(() => {
                         </span>
                       </div>
                       {purchaseToken === "BNB" && lastUpdated && bnbPrice !== "0" && (
-                     
-  <div className="flex items-center justify-between">
-    <span className="text-[#3b82f6]">Current BNB price</span>
-    
-    <div className="flex items-center2">
-      {priceLoading ? (
-        <span className="text-[#3b82f6] flex items-center gap-1">
-          <Loader2 className="w-3 h-3 animate-spin" />
-          Updating...
-        </span>
-      ) : (
-        <span className="text-[#3b82f6] font-semibold">
-         
-      
-     ${bnbPrice}
-        </span>
-      )}
-    </div>
-  </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#3b82f6]">Current BNB price</span>
+
+                          <div className="flex items-center2">
+                            {priceLoading ? (
+                              <span className="text-[#3b82f6] flex items-center gap-1">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Updating...
+                              </span>
+                            ) : (
+                              <span className="text-[#3b82f6] font-semibold">
+
+
+                                ${bnbPrice}
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
                       )}
 
                       <div className="flex items-center justify-between">
-    <span className="text-[#a0a0a0]">Amount to pay</span>
-    <div className="flex items-center gap-2">
-      {priceLoading ? (
-        <span className="text-[#707070] animate-pulse">Calculating...</span>
-      ) : purchaseToken === "BNB" ? (
-        <span className="text-[#eee]/80 font-semibold">
-          {parseFloat(currentBnbAmount).toFixed(6)} BNB (≈ ${currentPrice.toFixed(2)})
-        </span>
-      ) : (
-        <span className="text-[#e2e8f0]/70 font-semibold">
-          {currentUsdtAmount} USDT (≈ ${currentPrice.toFixed(2)})
-        </span>
-      )}
-    </div>
-  </div>
-  
+                        <span className="text-[#a0a0a0]">Amount to pay</span>
+                        <div className="flex items-center gap-2">
+                          {priceLoading ? (
+                            <span className="text-[#707070] animate-pulse">Calculating...</span>
+                          ) : purchaseToken === "BNB" ? (
+                            <span className="text-[#eee]/80 font-semibold">
+                              {parseFloat(currentBnbAmount).toFixed(6)} BNB (≈ ${currentPrice.toFixed(2)})
+                            </span>
+                          ) : (
+                            <span className="text-[#e2e8f0]/70 font-semibold">
+                              {currentUsdtAmount} USDT (≈ ${currentPrice.toFixed(2)})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
                       <div className="flex items-center justify-between">
                         <span className="text-[#a0a0a0]">Value</span>
                         <span className="text-[#e2e8f0]/70 text-[14px] font-bold">
@@ -1283,14 +1274,14 @@ useEffect(() => {
                       <div className="flex text-[10px] text-[#707070] pt-2 border-t border-[#eee]/30">
                         New subscription will extend your current expiry date.
                         {purchaseToken === "BNB" && lastUpdated && (
-    <div className="flex-1 text-[10px] text-[#707070] text-right">
-      Updated {lastUpdated.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-    </div>
-    
-  )}
+                          <div className="flex-1 text-[10px] text-[#707070] text-right">
+                            Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+
+                        )}
                       </div>
                     </div>
-                    
+
 
                     {purchaseToken === "USDT" && connected && (
                       <div className="ui-card rounded-lg p-3 text-[11px]">
@@ -1298,7 +1289,7 @@ useEffect(() => {
                           <span className="text-[#a0a0a0]">USDT Balance:</span>
                           <span className="text-[#e2e8f0]/70 font-semibold">{usdtBalance} USDT</span>
                         </div>
-                        
+
                         {needsApproval ? (
                           <div className="space-y-2">
                             <div className="text-[10px] text-yellow-500">
@@ -1333,26 +1324,26 @@ useEffect(() => {
 
                     {/* Confirm button */}
                     {/* Confirm button */}
-{(purchaseToken !== "USDT" || !needsApproval) && (
-  <button
-    type="button"
-    onClick={handleConfirmPurchase}
-    disabled={isProcessing}
-    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] px-4 py-2.5 text-xs font-medium text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    {isProcessing ? (
-      <>
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Processing transaction...
-      </>
-    ) : (
-      <>
-        Confirm payment in {purchaseToken}
-        <ArrowRight className="w-4 h-4" />
-      </>
-    )}
-  </button>
-)}
+                    {(purchaseToken !== "USDT" || !needsApproval) && (
+                      <button
+                        type="button"
+                        onClick={handleConfirmPurchase}
+                        disabled={isProcessing}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] px-4 py-2.5 text-xs font-medium text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Processing transaction...
+                          </>
+                        ) : (
+                          <>
+                            Confirm payment in {purchaseToken}
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    )}
 
                   </div>
                 ) : (

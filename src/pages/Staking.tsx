@@ -24,7 +24,7 @@ import {
 
 // Адреса контракта стейкінгу
 const STAKING_CONTRACT_ADDRESS = "0x311B26B19c53db97456EC21b12b86f015393F1fA";
-import STAKING_ABI from './abi/Staking_ABI.json';
+import STAKING_ABI from '../ABI/Staking_ABI.json';
 import { span } from 'framer-motion/client';
 
 // Адреса токенов

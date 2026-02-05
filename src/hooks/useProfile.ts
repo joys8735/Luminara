@@ -561,6 +561,33 @@ export function useProfile() {
     }
   }, [user, loadProfile]);
 
+  // Realtime subscription для миттєвих оновлень
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel(`profile:${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: `id=eq.${profile.id}`,
+        },
+        (payload) => {
+          if (isMounted.current && payload.new) {
+            setProfile(payload.new as Profile);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [profile?.id]);
+
   // Комбінований loading
   const combinedLoading = isLoading || authLoading || assetsLoading;
 

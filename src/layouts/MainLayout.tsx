@@ -10,8 +10,10 @@ import { ExternalLink, LinkIcon, Lock } from "lucide-react";
 import { WalletConnectModal } from "../components/WalletConnectModal";
 
 function LockScreen() {
+  const [connectOpen, setConnectOpen] = useState(false);
+
   return (
-    <div className="max-w-md mt-20 mx-auto rounded-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-8 text-center shadow-2xl">
+    <div className="max-w-md mt-20 mx-auto rounded-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-8  shadow-2xl">
       <div className="flex justify-center text-sm font-semibold text-[#e0e0e0] mb-3">
         <Lock className="w-4 h-4 mr-2" /> Access Required
       </div>
@@ -22,19 +24,19 @@ function LockScreen() {
         <div className="text-[#e0e0e0] font-semibold mb-2">Steps to access:</div>
         <ul className="list-none space-y-2">
           <li className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853] flex items-center justify-center text-white text-xs">
+            <div className="w-5 h-5 rounded-full  flex items-center justify-center text-white text-xs">
               1
             </div>
             <span>Login with Google from sidebar</span>
           </li>
           <li className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] flex items-center justify-center text-white text-xs">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs">
               2
             </div>
             <span>Link your wallet (Phantom/MetaMask)</span>
           </li>
           <li className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-[#10b981] to-[#059669] flex items-center justify-center text-white text-xs">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs">
               3
             </div>
             <span>Access all features</span>
@@ -44,7 +46,21 @@ function LockScreen() {
       <div className="text-xs text-[#a0a0a0]">
         Use the sidebar on the left to get started
       </div>
+      <div className="text-center mt-3 w-full z-[0] ">
+          
+            <button
+              onClick={() => setConnectOpen(true)}
+              className="w-full h-10 rounded-full bg-gradient-to-r from-[#3b82f6]/20 to-[#1d4ed8]/30 text-white text-xs font-medium flex items-center justify-center gap-2"
+            >
+              <LinkIcon className="w-3 h-3" />
+              Link Wallet to Continue
+            </button>
+         
+        </div>
+
+        <WalletConnectModal open={connectOpen} onClose={() => setConnectOpen(false)} />
     </div>
+    
   );
 }
 
@@ -93,8 +109,6 @@ export default function MainLayout() {
   const canShowContentDesktop = isPublic || canShowContent;
   const canShowContentMobile = connectedWallet;
 
-  const [connectOpen, setConnectOpen] = useState(false);
-
 
 
   if (isFullscreen) {
@@ -124,19 +138,7 @@ export default function MainLayout() {
         {shouldShowSidebar && canShowContent && <Header />}
 
         {/* Кнопка Link Wallet */}
-        <div className="text-center fixed bottom-0 left-0 w-full z-[0] ml-28">
-          
-            <button
-              onClick={() => setConnectOpen(true)}
-              className="w-full h-8 bg-gradient-to-r from-[#3b82f6]/50 to-[#1d4ed8]/50 text-white text-xs font-medium flex items-center justify-center gap-2"
-            >
-              <LinkIcon className="w-3 h-3" />
-              Link Wallet to Continue
-            </button>
-         
-        </div>
-
-        <WalletConnectModal open={connectOpen} onClose={() => setConnectOpen(false)} />
+        
 
         {/* Main content */}
         <main className="flex-1 overflow-x-hidden pb-4">

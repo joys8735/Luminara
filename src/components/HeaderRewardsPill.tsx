@@ -108,7 +108,7 @@ export function HeaderRewardsPill() {
 
   // Десктоп версия (оригинальная)
   const DesktopView = () => (
-    <div className="hidden md:flex items-center gap-2">
+    <div className="hidden md:flex items-center gap-1 ">
       {/* <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl ui-card">
         <Sparkles className="w-4 h-4 text-[#3b82f6]" />
         <div className="text-[11px] text-[#a0a0a0]">
@@ -117,7 +117,7 @@ export function HeaderRewardsPill() {
         </div>
       </div> */}
 
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg ui-card">
+      <div className="flex items-center gap-2 px-3 py-2 rounded-full ">
         <Gift className="w-4 h-4 text-[#3b82f6]" />
         <div className="text-[11px] text-[#a0a0a0]">
           AP <span className="text-[#e0e0e0] font-semibold">{alphaPoints.toLocaleString()} </span>
@@ -138,14 +138,14 @@ export function HeaderRewardsPill() {
         </div>
       </div>
 
-      <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg ui-card">
+      <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full ">
         <Ticket className="w-4 h-4 text-[#facc15]" />
         <div className="text-[11px] text-[#a0a0a0]">
           Ticket <span className="text-[#e0e0e0] font-semibold">{fragments}/10</span>
         </div>
       </div>
 
-      <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg ui-card">
+      <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-full ">
         <PackageOpen className="w-4 h-4 text-[#3b82f6]" />
         <div className="text-[11px] text-[#a0a0a0]">
           Opened <span className="text-[#e0e0e0] font-semibold">{openedTotal}</span>

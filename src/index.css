@@ -26,7 +26,7 @@
     line-height: 1.5;
   }
 }
-[data-theme="dark"] body::before {
+/* [data-theme="dark"] body::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -42,7 +42,7 @@
   filter: blur(2px);
 
   transform: scale(1.05);
-}
+} */
 
 /* [data-theme="light"] body::before {
   content: "";
@@ -107,66 +107,80 @@ p {
 }
 
 [data-theme="dark"] {
-  --bg-app: #0f1420; /* глибокий indigo-navy */
-  --bg-card: #202530;
+  --bg-app: #0f1420;
+  --bg-card: #1a2234;
   --bg-card-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.323), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
   --backdrop-blur: blur(16px);
   --bg-card-gradient: radial-gradient(
     circle at top left,
-    rgba(168, 85, 247, 0.1),
+    rgba(99, 102, 241, 0.15),
+    rgba(139, 92, 246, 0.05),
     transparent 70%
   );
   --bg-inner: #0a101f;
   --bg-hover: #253549;
 
   --border: #3f4a5f;
+  --border-light: #2d3748;
   --text-main: #e2e8f0;
   --text-muted: #a0aec0;
   --text-dim: #718096;
 
-  /* Jewel акценти */
-  --accent-purple: #9333ea; /* violet-600 — Fresh Purple inspired */
-  --accent-teal: #0f766e; /* teal-800 — глибокий, mysterious */
   --accent-blue: #6366f1;
-  --accent-pink: #db2777; /* для енергії */
+  --accent-blue-20: #6365f123;
+  --accent-purple: #8b5cf6;
+  --accent-purple-10: #8a5cf610;
+  --accent-violet: #a78bfa;
+  --accent-green: #10b981;
+  --accent-emerald: #34d399;
+  --accent-pink: #ec4899;
+  --accent-amber: #f59e0b;
 
   --header: #0f1420;
+  --header-border: rgba(63, 74, 95, 0.3);
   --sidebar: #1a2234;
+  --sidebar-hover: #253549;
 }
 
 [data-theme="light"] {
-  --bg-app: #f9fafb; /* slate-50 — м'якший, чистіший за #f8f9fc */
+  --bg-app: #f8fafc;
   --bg-card: #ffffff;
   --bg-card-shadow:
     0 1px 3px rgba(0, 0, 0, 0.08),
-    /* легка базова */ 0 4px 16px rgba(0, 0, 0, 0.05),
-    /* середня глибина */ 0 10px 40px rgba(0, 0, 0, 0.03); /* далека — повітря */
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    0 10px 40px rgba(0, 0, 0, 0.03);
   --bg-card-hover-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.08), 0 12px 48px rgba(0, 0, 0, 0.04);
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 12px 48px rgba(0, 0, 0, 0.04);
   --bg-card-gradient: radial-gradient(
     circle at top left,
-    rgba(99, 102, 241, 0.05) 0%,
+    rgba(79, 70, 229, 0.08) 0%,
+    rgba(124, 58, 237, 0.04) 50%,
     transparent 70%
   );
-  --bg-inner: #f8fafc; /* ще світліше для nested карток */
-  --bg-hover: #f1f5f9; /* hover без різкості */
+  --bg-inner: #f8fafc;
+  --bg-hover: #f1f5f9;
 
-  --border: #e2e8f0; /* slate-200 — м'який, але видимий */
-  --border-strong: #cbd5e1; /* slate-300 — для акцентних бордерів, якщо треба */
-  --text-main: #0f172a; /* slate-950 — глибший чорний, кращий контраст */
-  --text-muted: #475569; /* slate-600 — темніше для читабельності */
-  --text-dim: #64748b; /* slate-500 */
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #64748b;
 
-  --accent-blue: #6366f1; /* indigo-500 */
-  --accent-purple: #7c3aed; /* violet-600 — трохи глибше */
+  --accent-blue: #4f46e5;
+  --accent-purple: #7c3aed;
+  --accent-violet: #a78bfa;
   --accent-green: #10b981;
-  --accent-red: #ef4444;
-  --accent-pink: #ec4899;
+  --accent-emerald: #059669;
+  --accent-pink: #db2777;
+  --accent-amber: #d97706;
 
   --header: #ffffff;
-  --sidebar: #f9fafb; /* майже як bg-app, але з тінню відокремлюється */
-  --icon-card: #f1f5f9;
+  --header-border: rgba(226, 232, 240, 0.5);
+  --sidebar: #f9fafb;
+  --sidebar-hover: #f1f5f9;
 }
 
 .btn-gradient {
@@ -298,6 +312,19 @@ p {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2a2a2a;
+}
+
+/* Light theme scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* globals.css або sonner.css */
@@ -737,6 +764,37 @@ input[type="number"] {
   50% {
     box-shadow: 0 0 20px currentColor;
   }
+}
+
+/* Dropdown animations */
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+.dropdown-enter {
+  animation: slideDownFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dropdown-exit {
+  animation: slideUpFade 0.2s cubic-bezier(0.7, 0, 0.84, 0) forwards;
 }
 
 .animate-fadeIn {

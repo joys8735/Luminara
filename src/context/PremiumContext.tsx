@@ -184,7 +184,12 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({ child
     allowance: string;
   }> => {
     if (!signer || !walletAddress) {
-      throw new Error('Wallet not connected');
+      console.warn('Wallet not ready for allowance check');
+      return {
+        hasAllowance: false,
+        balance: '0',
+        allowance: '0'
+      };
     }
     
     try {
