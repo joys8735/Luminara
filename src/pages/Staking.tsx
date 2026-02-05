@@ -24,7 +24,7 @@ import {
 
 // Адреса контракта стейкінгу
 const STAKING_CONTRACT_ADDRESS = "0x311B26B19c53db97456EC21b12b86f015393F1fA";
-import STAKING_ABI from '../ABI/Staking_ABI.json';
+import STAKING_ABI from '@/ABI/Staking_ABI.json';
 import { span } from 'framer-motion/client';
 
 // Адреса токенов
@@ -1520,8 +1520,8 @@ export function Staking() {
 
   // Завантаження даних з контракта
   const loadContractData = useCallback(async (forceRefresh = false) => {
-    const now = Date.now();
-    if (!forceRefresh && now - lastLoadTime.current < 5000) {
+    const nowTime = Date.now();
+    if (!forceRefresh && nowTime - lastLoadTime.current < 5000) {
       return;
     }
     
@@ -1540,7 +1540,7 @@ export function Staking() {
     
     try {
       console.log('Loading contract data...');
-      lastLoadTime.current = now;
+      lastLoadTime.current = nowTime;
 
       const contract = new ethers.Contract(
         STAKING_CONTRACT_ADDRESS,
@@ -1624,7 +1624,7 @@ export function Staking() {
               stakedDate,
               currency: stake.isBNB ? 'BNB' : 'USDT',
               rewards,
-              canUnstake: now > endDate || pool.lockPeriod === 0,
+              canUnstake: new Date().getTime() > endDate.getTime() || pool.lockPeriod === 0,
             });
           } catch (error) {
             console.error(`Error loading stake ${i}:`, error);
