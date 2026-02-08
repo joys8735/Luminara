@@ -7,7 +7,7 @@ import { useWallet } from "../context/WalletContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { usePremium } from '../context/PremiumContext';
 import { useProfile } from "../hooks/useProfile";
-import { supabase, signInWithGoogle, getProfileId, getCurrentUser } from '../lib/supabase'; // Імпортуємо функції з supabase.ts
+import { supabase, signInWithGoogle, getProfileId } from '../lib/supabase'; // Імпортуємо функції з supabase.ts
 
 
 import {
