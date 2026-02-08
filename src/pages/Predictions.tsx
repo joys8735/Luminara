@@ -879,12 +879,30 @@ export function Predictions() {
   const [alphaOpen, setAlphaOpen] = useState(false);
   const [lbTab, setLbTab] = useState<"weekly" | "all">("weekly");
 
-  const [modalOpen, setModalOpen] = useState<number | null>(null);
+  // Separate modal states for each category
+  const [cryptoModalOpen, setCryptoModalOpen] = useState<number | null>(null);
+  const [sportsModalOpen, setSportsModalOpen] = useState<number | null>(null);
+  const [newsModalOpen, setNewsModalOpen] = useState<number | null>(null);
+
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<Curr>("USDT");
 
   // Category selection: crypto | sports | news
   const [category, setCategory] = useState<"crypto" | "sports" | "news">("crypto");
+
+  // Get current modal state based on category
+  const modalOpen = useMemo(() => {
+    if (category === "crypto") return cryptoModalOpen;
+    if (category === "sports") return sportsModalOpen;
+    return newsModalOpen;
+  }, [category, cryptoModalOpen, sportsModalOpen, newsModalOpen]);
+
+  // Get setter for current modal based on category
+  const setModalOpen = useCallback((id: number | null) => {
+    if (category === "crypto") setCryptoModalOpen(id);
+    else if (category === "sports") setSportsModalOpen(id);
+    else setNewsModalOpen(id);
+  }, [category]);
 
   // Convert sports & news to Pair format for compatibility
   const sportsAsPairs: Pair[] = useMemo(() =>
