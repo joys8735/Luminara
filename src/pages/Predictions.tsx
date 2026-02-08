@@ -42,6 +42,8 @@ import { WeeklyEvent } from "@/components/test/WeeklyEvent";
 import { ThemedDays } from "@/components/test/ThemedDays";
 import { AvatarCustomizer } from "@/components/test/AvatarCustomizer";
 import { HallOfFame } from "@/components/test/HallOfFame";
+import { LeagueStandings } from "@/components/LeagueStandings";
+import { PredictionCharts } from "@/components/PredictionCharts";
 
 // Додай цю функцію в Predictions.tsx перед компонентом
 // Функція для розумного форматування цін
