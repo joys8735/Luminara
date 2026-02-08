@@ -8,7 +8,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'sb-cnxyofqchoejrdrxdmwd-auth-token'
   },
   global: {
     headers: {
@@ -23,6 +25,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     }
   }
 });
+
+// Ініціалізуємо сесію при завантаженні сторінки
+if (typeof window !== 'undefined') {
+  supabase.auth.getSession().catch(err => {
+    console.error('Failed to initialize session:', err);
+  });
+}
 
 // Функція для отримання або створення profile_id
 // lib/supabase.ts - ОНОВІТЬ цю функцію
