@@ -333,7 +333,7 @@ export function Sidebar() {
               
             </div>
           </div>
-
+asfd
           {/* Навигация */}
           <div className="flex-1 overflow-y-auto px-2 pb-3">
             <Section title="Main" items={main} />
