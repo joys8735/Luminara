@@ -11,9 +11,11 @@ export function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Supabase сам обробляє callback URL
+        // Даємо Supabase час на обробку URL параметрів
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Auth callback error:', error);
           navigate('/');
