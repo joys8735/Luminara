@@ -2517,7 +2517,7 @@ export function Predictions() {
                           {selectedPair.pair}
                         </h3>
                         <span className="text-[10px] px-2 py-0.5 rounded-full ui-card text-[#a0a0a0]">
-                          Payout ×{selectedPair.mult}
+                          Payout ×{selectedPair.mult > 1.1 ? selectedPair.mult.toFixed(2) : selectedPair.mult.toFixed(1)}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-[#707070]">
