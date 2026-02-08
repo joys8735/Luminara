@@ -1307,13 +1307,38 @@ export function Predictions() {
                 )}
               </div>
 
+              {/* Category Tabs */}
+              <div className="flex gap-2 mb-4 flex-wrap">
+                {[
+                  { id: "crypto", label: "Crypto", icon: "💰" },
+                  { id: "sports", label: "Sports", icon: "⚽" },
+                  { id: "news", label: "News & Markets", icon: "📰" },
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCategory(cat.id as "crypto" | "sports" | "news")}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                      category === cat.id
+                        ? "bg-[#3b82f6] text-white"
+                        : "bg-[#1a1a1a] text-[#a0a0a0] hover:bg-[#222] border border-[#1f1f1f]"
+                    }`}
+                  >
+                    {cat.icon} {cat.label}
+                  </button>
+                ))}
+              </div>
+
               <h1 className="text-4xl font-bold ui-bg-text">
-                Crypto <br />
+                {category === "crypto" ? "Crypto" : category === "sports" ? "Sports" : "Market"} <br />
                 <motion.span
                   className="text-4xl font-bold"
                   style={{
                     background:
-                      "linear-gradient(90deg, #3b82f6, #eee, #a855f7)",
+                      category === "crypto"
+                        ? "linear-gradient(90deg, #3b82f6, #eee, #a855f7)"
+                        : category === "sports"
+                        ? "linear-gradient(90deg, #ec4899, #f59e0b, #10b981)"
+                        : "linear-gradient(90deg, #ef4444, #f97316, #f59e0b)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -1335,8 +1360,11 @@ export function Predictions() {
               <div className="mt-1 text-[11px]"></div>
 
               <p className="mt-1 text-sm text-[#a0a0a0] w-96 ">
-                Predict short-term direction, farm streak rewards and let the
-                assistant help with signal hints.
+                {category === "crypto"
+                  ? "Predict short-term direction, farm streak rewards and let the assistant help with signal hints."
+                  : category === "sports"
+                  ? "Predict sports outcomes, win big and compete with other players worldwide."
+                  : "Predict market sentiment from news and events, gain Alpha Points and climb the leaderboard."}
               </p>
 
               {/* 🔥 NEW STATS ROW UNDER TITLE */}
