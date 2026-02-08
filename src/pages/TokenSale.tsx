@@ -1091,75 +1091,98 @@ const TokenSale: React.FC = () => {
               </p>
             </div>
           </div>
-          {/* Airdrop & tickets */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-            <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
-              <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#a855f7_0,_transparent_60%)]" />
-              <div className="relative z-10 space-y-3 text-xs">
+          {/* Enhanced Airdrop & Referral Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Airdrop Tickets */}
+            <div className="bg-gradient-to-br from-[#121212] to-[#050816] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden group hover:border-[#a855f7]/50 transition-all">
+              <div className="pointer-events-none absolute -inset-0.5 opacity-0 group-hover:opacity-10 bg-[radial-gradient(circle_at_top,_#a855f7_0,_transparent_60%)] transition-opacity" />
+              <div className="relative z-10 space-y-4 text-xs">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Ticket className="w-4 h-4 text-[#3b82f6]" />
-                    <h3 className="text-xs font-semibold text-[#e0e0e0]">
-                      Airdrop tickets
-                    </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#a855f7]/20 border border-[#a855f7]/40 flex items-center justify-center">
+                      <Ticket className="w-5 h-5 text-[#a855f7]" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#e0e0e0]">
+                        Airdrop Tickets
+                      </h3>
+                      <p className="text-[10px] text-[#707070]">1 per 500 SVT</p>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-[#707070]">
-                    1 ticket / 500 SVT
-                  </span>
                 </div>
-                <div className="text-2xl font-semibold text-[#e0e0e0]">
-                  {totalTickets}{" "}
-                  <span className="text-sm text-[#707070]">tickets</span>
+
+                <div className="bg-[#050816]/50 border border-[#a855f7]/20 rounded-xl p-3 text-center">
+                  <div className="text-3xl font-bold text-[#a855f7]">{totalTickets}</div>
+                  <div className="text-[10px] text-[#707070] mt-1">
+                    Tier: <span className="text-[#e0e0e0] font-semibold">{airdropTier}</span>
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#707070]">
-                  Tier:{" "}
-                  <span className="text-[#e0e0e0] font-semibold">
-                    {airdropTier}
-                  </span>
+
+                {/* Tier Progress */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] text-[#707070]">
+                    <span>Tier Progress</span>
+                    <span>{Math.min(100, Math.round((totalTokensSold / 30000) * 100))}%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-[#050816] overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-[#a855f7] to-[#d946ef]"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (totalTokensSold / 30000) * 100)}%` }}
+                      transition={{ duration: 0.6 }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-[#050816] overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#22c1c3] via-[#3b82f6] to-[#a855f7]"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        (totalTokensSold / 30000) * 100
-                      )}%`,
-                    }}
-                  />
-                </div>
-                <div className="text-[10px] text-[#707070]">
-                  Tickets and tiers accumulate with every simulated purchase and
-                  can be used later for allocation & bonus logic.
+
+                <div className="text-[10px] text-[#707070] bg-[#050816]/30 rounded-lg p-2">
+                  🎯 Reach Silver tier (5k SVT) for exclusive rewards
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
-              <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_60%)]" />
-              <div className="relative z-10 space-y-3 text-xs">
+            {/* Referral & Bonuses */}
+            <div className="bg-gradient-to-br from-[#121212] to-[#050816] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden group hover:border-[#22c1c3]/50 transition-all">
+              <div className="pointer-events-none absolute -inset-0.5 opacity-0 group-hover:opacity-10 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_60%)] transition-opacity" />
+              <div className="relative z-10 space-y-4 text-xs">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Gift className="w-4 h-4 text-[#facc15]" />
-                    <h3 className="text-sm font-semibold text-[#e0e0e0]">
-                      Referral & boost
-                    </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#22c1c3]/20 border border-[#22c1c3]/40 flex items-center justify-center">
+                      <Gift className="w-5 h-5 text-[#22c1c3]" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#e0e0e0]">
+                        Referral Bonuses
+                      </h3>
+                      <p className="text-[10px] text-[#707070]">Earn rewards</p>
+                    </div>
                   </div>
-                  <span className="text-[11px] text-[#707070]">
-                    UI-only boost preview
-                  </span>
                 </div>
-                <div className="text-[11px] text-[#707070]">
-                  Current boost:{" "}
-                  <span className="text-[#e0e0e0] font-semibold">
-                    {airdropBoost}
-                  </span>
+
+                <div className="space-y-2">
+                  <div className="bg-[#050816]/50 border border-[#22c1c3]/20 rounded-lg p-2 text-center">
+                    <div className="text-[11px] text-[#707070]">Your Boost</div>
+                    <div className="text-2xl font-bold text-[#22c1c3] mt-1">{airdropBoost}</div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-[10px] text-[#707070]">
+                      <span>✓</span>
+                      <span>Referral codes increase ticket weight</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-[#707070]">
+                      <span>✓</span>
+                      <span>Higher purchases unlock better tiers</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-[#707070]">
+                      <span>✓</span>
+                      <span>Bonus tokens included in allocation</span>
+                    </div>
+                  </div>
                 </div>
-                <ul className="space-y-1 text-[11px] text-[#707070]">
-                  <li>• Referral codes can increase ticket weight later</li>
-                  <li>• Higher total SVT purchases unlock better tiers</li>
-                  <li>• Perfect for testing future logic for boosts</li>
-                </ul>
+
+                <button className="w-full py-2 rounded-lg bg-[#22c1c3]/20 hover:bg-[#22c1c3]/30 text-[#22c1c3] font-medium text-[10px] transition-all">
+                  Share Referral Link →
+                </button>
               </div>
             </div>
           </div>
