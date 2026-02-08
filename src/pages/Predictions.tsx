@@ -1919,7 +1919,7 @@ export function Predictions() {
                               </div>
                               {pair.mult && (
                                 <span className="text-[10px] px-1 py-0.5 rounded-full text-[#3b82f6]">
-                                  x{pair.mult} payout
+                                  x{pair.mult > 1.1 ? pair.mult.toFixed(2) : pair.mult.toFixed(1)} payout
                                 </span>
                               )}
                             </div>
