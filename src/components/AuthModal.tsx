@@ -1,24 +1,31 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { X, Mail, Lock, User, Eye, EyeOff, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode: 'login' | 'register';
+  onMetamaskConnect?: () => Promise<void>;
+  onGoogleLogin?: () => Promise<void>;
 }
 
 
 export function AuthModal({
   isOpen,
   onClose,
-  initialMode
+  initialMode,
+  onMetamaskConnect,
+  onGoogleLogin
 }: AuthModalProps) {
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   if (!isOpen) return null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === 'login') {
@@ -28,10 +35,37 @@ export function AuthModal({
     }
     onClose();
   };
-  const handleGoogleLogin = () => {
-    toast.success('Google login initiated!');
-    onClose();
-    
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      if (onGoogleLogin) {
+        await onGoogleLogin();
+      } else {
+        toast.success('Google login initiated!');
+      }
+      onClose();
+    } catch (error: any) {
+      toast.error(error.message || 'Google login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMetamaskLogin = async () => {
+    setIsLoading(true);
+    try {
+      if (onMetamaskConnect) {
+        await onMetamaskConnect();
+      } else {
+        toast.success('Metamask connection initiated!');
+      }
+      onClose();
+    } catch (error: any) {
+      toast.error(error.message || 'Metamask connection failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
   return <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-[#121212] border border-[#1f1f1f] rounded-lg max-w-md w-full p-6 relative animate-fadeIn">
