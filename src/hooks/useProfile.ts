@@ -318,73 +318,44 @@ export function useProfile() {
   }, [profile]);
 
   // Оновлення аватара
-  const updateAvatar = async (avatarId: string) => {
+  const updateAvatar = useCallback(async (avatarId: string) => {
     if (!profile) return;
 
-    
-
     const avatar = avatars.find(a => a.avatar_id === avatarId);
-  if (!avatar || !avatar.unlocked) {
-    throw new Error('Invalid or locked avatar');
-  }
-
-    if (!avatar) {
-      console.error('❌ Avatar not found:', avatarId);
-      throw new Error('Avatar not found');
+    if (!avatar || !avatar.unlocked) {
+      throw new Error('Invalid or locked avatar');
     }
 
-    if (!avatar.unlocked) {
-      console.error('❌ Avatar locked:', avatarId);
-      throw new Error('Avatar is locked');
-    }
-
-    // Оновлюємо локально одразу
-    const updatedProfile = {
-    ...profile,
-    avatar: avatarId,
-    last_updated: new Date().toISOString(),
-  };
-  setProfile(updatedProfile);
-
-    // console.log('🔄 Setting local profile with avatar:', avatarId);
-    // setProfile(updatedProfile);
-
-    // Чекаємо оновлення в базі
-  const { error } = await supabase
-    .from('user_profiles')
-    .update({ 
-      avatar: avatarId,
-      last_updated: new Date().toISOString()
-    })
-    .eq('id', profile.id);
-
-    if (error) {
-    console.error('❌ Failed to save avatar to DB:', error);
-    // Опціонально: rollback локального стану
-    setProfile(profile); // повертаємо старий
-    throw error;
-  }
-
-  
-
-    // Асинхронно оновлюємо в базі
-    supabase
-      .from('user_profiles')
-      .update({ 
+    try {
+      // Оновлюємо локально одразу
+      const updatedProfile = {
+        ...profile,
         avatar: avatarId,
-        last_updated: new Date().toISOString()
-      })
-      .eq('id', profile.id)
-      .then(({ error }) => {
-        if (error) {
-          console.error('❌ Failed to save avatar to DB:', error);
-        } else {
-          
-        }
-      });
-    await refreshProfile();
-    return updatedProfile;
-  };
+        last_updated: new Date().toISOString(),
+      };
+      setProfile(updatedProfile);
+
+      // Чекаємо оновлення в базі
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          avatar: avatarId,
+          last_updated: new Date().toISOString()
+        })
+        .eq('id', profile.id);
+
+      if (error) {
+        console.error('❌ Failed to save avatar to DB:', error);
+        setProfile(profile); // rollback
+        throw error;
+      }
+
+      return updatedProfile;
+    } catch (error) {
+      console.error('❌ Failed to update avatar:', error);
+      throw error;
+    }
+  }, [profile]);
 
   // Оновлення рамки
   const updateAvatarFrame = useCallback(async (frameId: string) => {
