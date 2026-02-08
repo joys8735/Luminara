@@ -1349,27 +1349,6 @@ export function Predictions() {
                 )}
               </div>
 
-              {/* Category Tabs */}
-              <div className="flex gap-2 mb-4 flex-wrap">
-                {[
-                  { id: "crypto", label: "Crypto", icon: "💰" },
-                  { id: "sports", label: "Sports", icon: "⚽" },
-                  { id: "news", label: "News & Markets", icon: "📰" },
-                ].map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.id as "crypto" | "sports" | "news")}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                      category === cat.id
-                        ? "bg-[#3b82f6] text-white"
-                        : "bg-[#1a1a1a] text-[#a0a0a0] hover:bg-[#222] border border-[#1f1f1f]"
-                    }`}
-                  >
-                    {cat.icon} {cat.label}
-                  </button>
-                ))}
-              </div>
-
               <h1 className="text-4xl font-bold ui-bg-text">
                 {category === "crypto" ? "Crypto" : category === "sports" ? "Sports" : "Market"} <br />
                 <motion.span
