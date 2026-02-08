@@ -1354,7 +1354,7 @@ export function Predictions() {
                 <motion.span
                   className="text-4xl font-bold"
                   style={{
-                    background:
+                    backgroundImage:
                       category === "crypto"
                         ? "linear-gradient(90deg, #3b82f6, #eee, #a855f7)"
                         : category === "sports"
