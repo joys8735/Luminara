@@ -1759,6 +1759,27 @@ export function Predictions() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT — PAIRS */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Category Tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { id: "crypto", label: "Crypto", icon: "💰" },
+              { id: "sports", label: "Sports", icon: "⚽" },
+              { id: "news", label: "News & Markets", icon: "📰" },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(cat.id as "crypto" | "sports" | "news")}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  category === cat.id
+                    ? "bg-[#3b82f6] text-white"
+                    : "bg-[#1a1a1a] text-[#a0a0a0] hover:bg-[#222] border border-[#1f1f1f]"
+                }`}
+              >
+                {cat.icon} {cat.label}
+              </button>
+            ))}
+          </div>
+
           <div className="ui-card backdrop-blur-sm rounded-2xl p-5 relative overflow-hidden">
             <div className="pointer-events-none absolute -inset-0.5 opacity-15 card-gradient-soft" />
             <div className="relative z-10 space-y-4">
