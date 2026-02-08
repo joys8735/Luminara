@@ -175,12 +175,26 @@ class WebSocketService {
   }
 
   disconnect() {
+    this.isManuallyDisconnected = true;
+
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
     if (this.ws) {
       this.ws.close();
       this.ws = null;
     }
+
     this.simulationIntervals.forEach(interval => clearInterval(interval));
     this.simulationIntervals = [];
+  }
+
+  reconnect() {
+    this.isManuallyDisconnected = false;
+    this.reconnectAttempts = 0;
+    this.connect();
   }
 }
 
