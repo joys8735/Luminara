@@ -90,7 +90,7 @@ export function LeagueStandings({ title = 'Live Standings', category = 'crypto' 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className={`relative px-6 py-4 transition-all hover:bg-[#1a1a1a] ${
+                className={`relative px-4 py-2 transition-all hover:bg-[#1a1a1a] ${
                   isYou ? 'bg-[#3b82f6]/10 border-l-4 border-[#3b82f6]' : ''
                 }`}
               >
@@ -100,7 +100,7 @@ export function LeagueStandings({ title = 'Live Standings', category = 'crypto' 
                   style={{ width: `${progress}%` }}
                 />
 
-                <div className="relative grid grid-cols-12 gap-4 items-center text-xs">
+                <div className="relative grid grid-cols-12 gap-3 items-center text-[11px]">
                   {/* Rank */}
                   <div className="col-span-1 font-bold">
                     <span className="text-lg">{getRankMedal(player.rank)}</span>
