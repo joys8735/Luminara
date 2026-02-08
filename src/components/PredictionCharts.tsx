@@ -84,28 +84,28 @@ export function PredictionCharts({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-[#e0e0e0]">{title}</h3>
+        <h3 className="text-base font-semibold text-[#e0e0e0]">{title}</h3>
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-emerald-400">{winRate}% Win Rate</span>
+          <TrendingUp className="w-3 h-3 text-emerald-400" />
+          <span className="text-xs font-semibold text-emerald-400">{winRate}% Win Rate</span>
         </div>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#121212] border border-[#1f1f1f] rounded-xl p-3">
-          <div className="text-[11px] text-[#707070] mb-1">Total Wins</div>
-          <div className="text-2xl font-bold text-emerald-400">{totalWins}</div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-lg p-2">
+          <div className="text-[10px] text-[#707070] mb-0.5">Total Wins</div>
+          <div className="text-xl font-bold text-emerald-400">{totalWins}</div>
         </div>
-        <div className="bg-[#121212] border border-[#1f1f1f] rounded-xl p-3">
-          <div className="text-[11px] text-[#707070] mb-1">Win Rate</div>
-          <div className="text-2xl font-bold text-[#3b82f6]">{winRate}%</div>
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-lg p-2">
+          <div className="text-[10px] text-[#707070] mb-0.5">Win Rate</div>
+          <div className="text-xl font-bold text-[#3b82f6]">{winRate}%</div>
         </div>
-        <div className="bg-[#121212] border border-[#1f1f1f] rounded-xl p-3">
-          <div className="text-[11px] text-[#707070] mb-1">Best Day</div>
-          <div className="text-2xl font-bold text-[#a855f7]">{bestDay}</div>
+        <div className="bg-[#121212] border border-[#1f1f1f] rounded-lg p-2">
+          <div className="text-[10px] text-[#707070] mb-0.5">Best Day</div>
+          <div className="text-xl font-bold text-[#a855f7]">{bestDay}</div>
         </div>
       </div>
 
