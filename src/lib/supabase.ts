@@ -99,15 +99,32 @@ export const ensureUserProfile = async (user: any) => {
 };
 
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  
-  // При отриманні користувача також створюємо/отримуємо профіль
-  if (user) {
-    await ensureUserProfile(user);
+  try {
+    // Спочатку отримуємо сесію
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    // Якщо немає сесії, повертаємо null замість помилки
+    if (sessionError || !session) {
+      return null;
+    }
+
+    // Якщо є сесія, отримуємо користувача
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+
+    // При отриманні користувача також створюємо/отримуємо профіль
+    if (user) {
+      await ensureUserProfile(user);
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Failed to get current user:', error);
+    return null;
   }
-  
-  return user;
 };
 
 export const signInWithGoogle = async () => {
