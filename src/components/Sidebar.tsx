@@ -591,20 +591,22 @@ export function Sidebar() {
                 {/* Профіль для мобільної версії */}
                 <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border)] p-4 mb-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="relative w-12 h-12">
+                    <div className="relative w-12 h-12" key={`avatar-mobile-${profile?.avatar}-${profile?.avatar_frame}`}>
                       {/* Аватарка */}
                       <img
                         src={getCurrentAvatar()?.imageUrl || 'https://via.placeholder.com/48?text=Avatar'}
                         alt="Avatar"
                         className="w-full h-full rounded-xl object-cover border-2 border-[#1f1f1f]"
+                        key={`img-mobile-${profile?.avatar}`}
                       />
-                      
+
                       {/* Фрейм поверх аватарки */}
                       {profile?.avatar_frame !== "none" && getCurrentFrame()?.image_url && (
                         <img
                           src={getCurrentFrame()?.image_url}
                           alt="Frame"
                           className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                          key={`frame-mobile-${profile?.avatar_frame}`}
                         />
                       )}
                     </div>
