@@ -616,7 +616,7 @@ export function Sidebar() {
                     </div>
                   </div>
                   
-                  {!isLoggedIn ? (
+                  {isLoggedIn ? (
                     <div className="space-y-2 mb-2">
                       <button
                         onClick={() => {
