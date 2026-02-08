@@ -529,10 +529,16 @@ export function useProfile() {
   // Функція для ручного оновлення профілю
   const refreshProfile = useCallback(async () => {
     if (user && isMounted.current) {
-      profileLoadInProgress.current = false; // Force reset lock
-      await loadProfile(user);
+      profileLoadInProgress.current = false;
+      lastProfileLoadTime.current = 0; // Reset time to allow immediate reload
+      // Call loadProfile asynchronously to prevent blocking
+      setTimeout(() => {
+        if (isMounted.current) {
+          loadProfile(user);
+        }
+      }, 0);
     }
-  }, [user]);
+  }, [user, loadProfile]);
 
   // Realtime subscription для миттєвих оновлень
   useEffect(() => {
