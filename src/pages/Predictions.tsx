@@ -884,6 +884,46 @@ export function Predictions() {
   // Category selection: crypto | sports | news
   const [category, setCategory] = useState<"crypto" | "sports" | "news">("crypto");
 
+  // Convert sports & news to Pair format for compatibility
+  const sportsAsPairs: Pair[] = useMemo(() =>
+    sportsPredictions.map(sp => ({
+      id: sp.id,
+      symbol: sp.symbol,
+      pair: sp.name,
+      price: sp.price,
+      change: sp.change,
+      high: sp.price * 1.1,
+      low: sp.price * 0.9,
+      open: sp.price,
+      vol: `${Math.round(Math.random() * 100)}M`,
+      logo: "sport",
+      mult: 2.0 + Math.random() * 0.5,
+    })),
+  []);
+
+  const newsAsPairs: Pair[] = useMemo(() =>
+    newsPredictions.map(np => ({
+      id: np.id,
+      symbol: np.symbol,
+      pair: np.name,
+      price: np.price,
+      change: np.change,
+      high: np.price * 1.15,
+      low: np.price * 0.85,
+      open: np.price,
+      vol: `${Math.round(Math.random() * 80)}M`,
+      logo: "news",
+      mult: 2.1 + Math.random() * 0.4,
+    })),
+  []);
+
+  // Filter pairs based on category
+  const displayPairs = useMemo(() => {
+    if (category === "sports") return sportsAsPairs;
+    if (category === "news") return newsAsPairs;
+    return pairs;
+  }, [category, pairs, sportsAsPairs, newsAsPairs]);
+
   // Додай в кожну активну ставку
   const calculateLivePnL = (bet: Bet, currentPrice: number) => {
     const change = ((currentPrice - bet.entryPrice) / bet.entryPrice) * 100;
