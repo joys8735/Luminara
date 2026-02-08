@@ -1119,8 +1119,8 @@ export function Predictions() {
   }, []);
 
   const selectedPair = useMemo(
-    () => (modalOpen ? pairs.find((p) => p.id === modalOpen) || null : null),
-    [modalOpen, pairs],
+    () => (modalOpen ? displayPairs.find((p) => p.id === modalOpen) || null : null),
+    [modalOpen, displayPairs],
   );
 
   const openModal = (id: number) => {
