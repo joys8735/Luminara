@@ -197,28 +197,32 @@ export function useProfile() {
   // Головний ефект: тільки listener на auth
   useEffect(() => {
     isMounted.current = true;
-    
+    let isInitialized = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        
+      async (event, session) => {
+        if (!isMounted.current) return;
 
         if (session?.user) {
           if (previousUserId.current === session.user.id) {
-            
             return;
           }
           previousUserId.current = session.user.id;
           setUser(session.user);
-          loadProfile(session.user).catch(err => {
-            console.error('Background profile load failed:', err);
-          });
+
+          // Call loadProfile directly without awaiting to prevent blocking
+          if (!isInitialized) {
+            isInitialized = true;
+            loadProfile(session.user).catch(err => {
+              console.error('Background profile load failed:', err);
+            });
+          }
         } else {
-          
           setUser(null);
           setProfile(null);
           setIsFirstLogin(false);
           previousUserId.current = null;
+          isInitialized = false;
         }
 
         setAuthLoading(false);
@@ -226,7 +230,6 @@ export function useProfile() {
     );
 
     return () => {
-      
       isMounted.current = false;
       subscription.unsubscribe();
     };
