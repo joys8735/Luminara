@@ -2448,14 +2448,14 @@ export function Predictions() {
       </div>
 
       {/* LEAGUE & CHARTS SECTION */}
-      <div className="space-y-8 mt-12">
+      <div className="space-y-4 mt-8">
         <div>
-          <h2 className="text-2xl font-bold ui-bg-text mb-6 flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-[#facc15]" />
+          <h2 className="text-lg font-bold ui-bg-text mb-3 flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[#facc15]" />
             Competition & Analytics
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Leaderboard - 2 columns */}
             <div className="lg:col-span-2">
               <LeagueStandings
@@ -2468,7 +2468,7 @@ export function Predictions() {
             <div>
               <PredictionCharts
                 title="Your Performance"
-                height={250}
+                height={180}
                 showWinLoss={true}
               />
             </div>
@@ -2479,7 +2479,7 @@ export function Predictions() {
         <div>
           <PredictionCharts
             title="Weekly Statistics"
-            height={320}
+            height={240}
             showWinLoss={true}
           />
         </div>
