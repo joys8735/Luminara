@@ -548,6 +548,83 @@ const TokenSale: React.FC = () => {
         </div>
       </div>
 
+      {/* MAIN PROGRESS + STATS SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        {/* Progress Visualization */}
+        <div className="lg:col-span-2 backdrop-blur-md bg-black/20 border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+          <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_60%)]" />
+          <div className="relative z-10 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-[#e0e0e0]">Sale Progress</h3>
+              <span className="text-[#3b82f6] font-bold text-xl">{Math.min(100, Math.round((totalTokensSold / 100000) * 100))}%</span>
+            </div>
+
+            {/* Large Progress Bar */}
+            <div className="space-y-2">
+              <div className="h-6 bg-[#050816] border border-[#1f1f1f] rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-[#3b82f6] via-[#22c1c3] to-[#a855f7] relative"
+                  style={{
+                    width: `${Math.min(100, (totalTokensSold / 100000) * 100)}%`
+                  }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, (totalTokensSold / 100000) * 100)}%` }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle,_rgba(255,255,255,0.3),_transparent)]" />
+                </motion.div>
+              </div>
+              <div className="flex justify-between text-[10px] text-[#707070]">
+                <span>{fmtSpaceInt(totalTokensSold)} SVT sold</span>
+                <span>Target: 100,000 SVT</span>
+              </div>
+            </div>
+
+            {/* Tier Progress */}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="bg-[#050816] border border-[#1f1f1f] rounded-lg p-2 text-center">
+                <div className="text-[#707070] mb-1">Bronze</div>
+                <div className="text-[#e0e0e0] font-bold">0%</div>
+              </div>
+              <div className="bg-[#050816] border border-[#1f1f1f] rounded-lg p-2 text-center">
+                <div className="text-[#a0a0a0] mb-1">Silver</div>
+                <div className="text-[#e0e0e0] font-bold">{Math.min(100, Math.round((totalTokensSold / 30000) * 100))}%</div>
+              </div>
+              <div className="bg-[#050816] border border-[#1f1f1f] rounded-lg p-2 text-center">
+                <div className="text-[#f59e0b] mb-1">Gold+</div>
+                <div className="text-[#e0e0e0] font-bold">{Math.max(0, Math.round(((totalTokensSold - 30000) / 70000) * 100))}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="backdrop-blur-md bg-black/20 border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+          <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#a855f7_0,_transparent_60%)]" />
+          <div className="relative z-10 space-y-3 text-xs">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#3b82f6]" />
+              <div>
+                <div className="text-[#707070]">Time remaining</div>
+                <div className="text-sm font-bold text-[#e0e0e0]">
+                  {salePhase === "ended" ? "Sale Ended" : `${countdownToEnd.days}d ${countdownToEnd.hours}h`}
+                </div>
+              </div>
+            </div>
+            <div className="h-px bg-[#1f1f1f]" />
+            <div className="flex items-center gap-2">
+              <Coins className="w-4 h-4 text-[#22c1c3]" />
+              <div>
+                <div className="text-[#707070]">Your allocation</div>
+                <div className="text-sm font-bold text-[#e0e0e0]">
+                  {claimStats.totalPurchased > 0 ? fmtSpaceInt(claimStats.totalPurchased) : "None yet"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="backdrop-blur-md bg-black/20 border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden hover:shadow-2xl transition-all">
   {/* BACKGROUND GLOW */}
   <div className="pointer-events-none absolute -inset-0.5 opacity-10
