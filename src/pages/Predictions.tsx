@@ -1815,7 +1815,7 @@ export function Predictions() {
 
               {/* LIST */}
               <div className="space-y-3">
-                {pairs.map((pair) => {
+                {displayPairs.map((pair) => {
                   const hasPrice = !!pair.price;
 
                   // Динамічне форматування ціни
