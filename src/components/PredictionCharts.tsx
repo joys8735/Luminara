@@ -115,9 +115,9 @@ export function PredictionCharts({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-6"
+          className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-3"
         >
-          <h4 className="text-sm font-semibold text-[#e0e0e0] mb-4">Weekly Performance</h4>
+          <h4 className="text-xs font-semibold text-[#e0e0e0] mb-2">Weekly Performance</h4>
           <ResponsiveContainer width="100%" height={height}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
