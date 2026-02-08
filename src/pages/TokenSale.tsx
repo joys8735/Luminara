@@ -525,16 +525,28 @@ const TokenSale: React.FC = () => {
       : "text-[#707070]";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* HERO / HEADER */}
+      <div className="flex items-center justify-between mb-4">
         <button
-    type="button"
-    onClick={() => window.history.back()}
-    className="inline-flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#050816] px-3 py-1 text-[11px] text-[#a0a0a0] hover:border-[#3b82f6]/70 hover:text-[#e0e0e0] transition-all"
-  >
-    <ArrowLeft className="w-3 h-3 text-[#3b82f6]" />
-    <span>Back</span>
-  </button>
+          type="button"
+          onClick={() => window.history.back()}
+          className="inline-flex items-center gap-2 rounded-full border border-[#1f1f1f] bg-[#050816] px-3 py-1 text-[11px] text-[#a0a0a0] hover:border-[#3b82f6]/70 hover:text-[#e0e0e0] transition-all"
+        >
+          <ArrowLeft className="w-3 h-3 text-[#3b82f6]" />
+          <span>Back</span>
+        </button>
+
+        {/* Quick Stats Badge */}
+        <div className="flex gap-3 text-[11px]">
+          <div className="px-3 py-1 rounded-full bg-[#050816]/80 border border-[#1f1f1f] text-[#a0a0a0]">
+            <span className="text-emerald-400 font-semibold">{salePhase === 'live' ? '🟢 LIVE' : salePhase === 'upcoming' ? '🟡 UPCOMING' : '⚪ ENDED'}</span>
+          </div>
+          <div className="px-3 py-1 rounded-full bg-[#050816]/80 border border-[#1f1f1f] text-[#a0a0a0]">
+            Progress: <span className="text-[#22c1c3] font-semibold">{Math.min(100, Math.round((totalTokensSold / 100000) * 100))}%</span>
+          </div>
+        </div>
+      </div>
 
       <div className="backdrop-blur-md bg-black/20 border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden hover:shadow-2xl transition-all">
   {/* BACKGROUND GLOW */}
