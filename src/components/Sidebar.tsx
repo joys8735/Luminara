@@ -375,20 +375,22 @@ export function Sidebar() {
                         ${profileOpen ? "rounded-b-2xl" : "rounded-2xl"}
                       `}
                     >
-                      <div className="relative w-9 h-9">
+                      <div className="relative w-9 h-9" key={`avatar-${profile?.avatar}-${profile?.avatar_frame}`}>
                         {/* Аватарка */}
                         <img
                           src={getCurrentAvatar()?.imageUrl || 'https://via.placeholder.com/28?text=Avatar'}
                           alt="Avatar"
                           className="w-full h-full rounded-full object-cover border-2 border-[#1f1f1f]"
+                          key={`img-${profile?.avatar}`}
                         />
-                        
+
                         {/* Фрейм поверх аватарки */}
                         {profile?.avatar_frame !== "none" && getCurrentFrame()?.image_url && (
                           <img
                             src={getCurrentFrame()?.image_url}
                             alt="Frame"
                             className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                            key={`frame-${profile?.avatar_frame}`}
                           />
                         )}
                         
