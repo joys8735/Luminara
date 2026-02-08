@@ -881,6 +881,9 @@ export function Predictions() {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<Curr>("USDT");
 
+  // Category selection: crypto | sports | news
+  const [category, setCategory] = useState<"crypto" | "sports" | "news">("crypto");
+
   // Додай в кожну активну ставку
   const calculateLivePnL = (bet: Bet, currentPrice: number) => {
     const change = ((currentPrice - bet.entryPrice) / bet.entryPrice) * 100;
