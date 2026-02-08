@@ -36,11 +36,14 @@ class WebSocketService {
   private sportsListeners: SportsUpdateListener[] = [];
   private leaderboardListeners: ((data: LeaderboardEntry[]) => void)[] = [];
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 3;
   private simulationIntervals: NodeJS.Timeout[] = [];
+  private isManuallyDisconnected = false;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
 
   connect() {
     if (this.ws?.readyState === WebSocket.OPEN) return;
+    if (this.isManuallyDisconnected) return;
 
     try {
       // Бінанс WebSocket для крипто
@@ -48,7 +51,7 @@ class WebSocketService {
       this.ws = new WebSocket(binanceStream);
 
       this.ws.onopen = () => {
-        console.log('WebSocket connected');
+        console.log('✅ WebSocket connected');
         this.reconnectAttempts = 0;
       };
 
@@ -57,40 +60,52 @@ class WebSocketService {
           const data = JSON.parse(event.data);
           if (Array.isArray(data)) {
             data.forEach(ticker => {
-              const update: PriceUpdate = {
-                symbol: ticker.s,
-                price: parseFloat(ticker.c),
-                change: parseFloat(ticker.P),
-                high: parseFloat(ticker.h),
-                low: parseFloat(ticker.l),
-                volume: (parseFloat(ticker.q) / 1000000).toFixed(2) + 'M',
-                timestamp: ticker.E
-              };
-              this.notifyPriceListeners(update);
+              try {
+                const update: PriceUpdate = {
+                  symbol: ticker.s,
+                  price: parseFloat(ticker.c),
+                  change: parseFloat(ticker.P),
+                  high: parseFloat(ticker.h),
+                  low: parseFloat(ticker.l),
+                  volume: (parseFloat(ticker.q) / 1000000).toFixed(2) + 'M',
+                  timestamp: ticker.E
+                };
+                this.notifyPriceListeners(update);
+              } catch (e) {
+                // Silently skip problematic ticker data
+              }
             });
           }
         } catch (e) {
-          console.error('WebSocket message error:', e);
+          // Silently handle JSON parse errors
         }
       };
 
-      this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      this.ws.onerror = (event) => {
+        console.warn('⚠️ WebSocket error, will reconnect...', event?.type || 'unknown');
       };
 
       this.ws.onclose = () => {
-        console.log('WebSocket closed, reconnecting...');
-        this.reconnect();
+        if (!this.isManuallyDisconnected && this.reconnectAttempts < this.maxReconnectAttempts) {
+          console.log('🔄 WebSocket closed, attempting to reconnect...');
+          this.reconnect();
+        }
       };
     } catch (e) {
-      console.error('WebSocket connection error:', e);
+      console.warn('⚠️ WebSocket connection error:', (e as Error).message);
+      if (!this.isManuallyDisconnected) {
+        this.reconnect();
+      }
     }
   }
 
   private reconnect() {
+    if (this.isManuallyDisconnected) return;
+
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      setTimeout(() => this.connect(), 3000 * this.reconnectAttempts);
+      const delay = Math.min(5000 * this.reconnectAttempts, 15000);
+      this.reconnectTimeout = setTimeout(() => this.connect(), delay);
     }
   }
 
