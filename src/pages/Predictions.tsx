@@ -1807,7 +1807,7 @@ export function Predictions() {
 
                 <div className="flex flex-wrap items-center gap-2 text-[11px]">
                   <span className="px-2 py-1 rounded-full border border-[#1f1f1f]/10 bg-[#050816]/90 px-6 text-[#eee]/70">
-                    Payout up to ×{maxMult.toFixed(2)}
+                    Payout up to ×{maxMult > 1.1 ? maxMult.toFixed(2) : maxMult.toFixed(1)}
                   </span>
                   <span className="px-2 py-1 rounded-full border border-[#1f1f1f]/10 bg-[#050816]/90 px-6 text-[#eee]/70">
                     5m rounds • 24h range
