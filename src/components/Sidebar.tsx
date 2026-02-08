@@ -67,44 +67,21 @@ export function Sidebar() {
 
   // ✅ Спрощена перевірка авторизації через Supabase
   useEffect(() => {
-    const checkAuth = async () => {
+    // Завантажуємо збережену сесію з localStorage для початкового відображення
+    const storedUser = localStorage.getItem('google_user');
+    if (storedUser) {
       try {
-        // Використовуємо функцію getCurrentUser з supabase.ts
-        const user = await getCurrentUser();
-        
-        if (user) {
-          const userData = {
-            id: user.id,
-            name: user.user_metadata?.full_name || user.email?.split('@')[0],
-            email: user.email,
-            avatar: user.user_metadata?.avatar_url,
-          };
-          setGoogleUser(userData);
-          localStorage.setItem('google_user', JSON.stringify(userData));
-        } else {
-          // Fallback на localStorage
-          const storedUser = localStorage.getItem('google_user');
-          if (storedUser) {
-            try {
-              const user = JSON.parse(storedUser);
-              setGoogleUser(user);
-            } catch (e) {
-              localStorage.removeItem('google_user');
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      } finally {
-        setAuthChecked(true);
+        const user = JSON.parse(storedUser);
+        setGoogleUser(user);
+      } catch (e) {
+        localStorage.removeItem('google_user');
       }
-    };
+    }
+    setAuthChecked(true);
 
-    checkAuth();
-
-    // Слухач змін автентифікації
+    // Слухач змін автентифікації - це основне джерело даних про сесію
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session?.user) {
           const userData = {
             id: session.user.id,
