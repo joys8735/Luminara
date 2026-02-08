@@ -325,6 +325,30 @@ const symbolsDefault = [
   "PEPEUSDT",
 ];
 
+// Sports predictions
+const sportsPredictions = [
+  { id: 101, name: "UEFA Champions League", symbol: "UCL_FINAL", change: 2.3, price: 1.5, logo: "sport" },
+  { id: 102, name: "Premier League Winner", symbol: "PL_WINNER", change: -1.8, price: 2.1, logo: "sport" },
+  { id: 103, name: "NBA Finals", symbol: "NBA_FINALS", change: 3.5, price: 1.8, logo: "sport" },
+  { id: 104, name: "Wimbledon Singles", symbol: "WIM_SINGLES", change: 1.2, price: 1.6, logo: "sport" },
+  { id: 105, name: "Horse Racing - Royal Ascot", symbol: "ASCOT_RACE", change: -2.1, price: 2.5, logo: "sport" },
+  { id: 106, name: "World Cup 2026", symbol: "WC_2026", change: 4.2, price: 1.9, logo: "sport" },
+  { id: 107, name: "Super Bowl", symbol: "SUPER_BOWL", change: 2.8, price: 1.7, logo: "sport" },
+  { id: 108, name: "Tour de France", symbol: "TDF_WINNER", change: 0.5, price: 2.2, logo: "sport" },
+];
+
+// News & Market Sentiment predictions
+const newsPredictions = [
+  { id: 201, name: "Fed Rate Decision", symbol: "FED_RATE", change: -1.5, price: 2.0, logo: "news", sentiment: "bearish" },
+  { id: 202, name: "Crypto Regulation News", symbol: "CRYPTO_REG", change: 3.2, price: 1.4, logo: "news", sentiment: "bullish" },
+  { id: 203, name: "Tech Stock Sentiment", symbol: "TECH_SENT", change: 2.1, price: 1.6, logo: "news", sentiment: "bullish" },
+  { id: 204, name: "Inflation Announcement", symbol: "INFLATION", change: -2.8, price: 2.3, logo: "news", sentiment: "bearish" },
+  { id: 205, name: "Market Crash Prediction", symbol: "MARKET_CRASH", change: -3.5, price: 3.0, logo: "news", sentiment: "bearish" },
+  { id: 206, name: "GDP Growth News", symbol: "GDP_GROWTH", change: 1.9, price: 1.5, logo: "news", sentiment: "bullish" },
+  { id: 207, name: "Tech IPO Success", symbol: "TECH_IPO", change: 2.4, price: 1.7, logo: "news", sentiment: "bullish" },
+  { id: 208, name: "Banking Sector Sentiment", symbol: "BANK_SENT", change: -1.2, price: 1.9, logo: "news", sentiment: "neutral" },
+];
+
 const LIMITS: Record<Curr, { min: number; max: number }> = {
   USDT: { min: 5, max: 5000 },
   SOL: { min: 0.1, max: 50 },
