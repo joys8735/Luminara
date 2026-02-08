@@ -68,8 +68,8 @@ export function LeagueStandings({ title = 'Live Standings', category = 'crypto' 
 
       {/* Leaderboard */}
       <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-[#3b82f6]/10 to-[#a855f7]/10 border-b border-[#1f1f1f] px-6 py-3">
-          <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-[#a0a0a0]">
+        <div className="bg-gradient-to-r from-[#3b82f6]/10 to-[#a855f7]/10 border-b border-[#1f1f1f] px-4 py-2">
+          <div className="grid grid-cols-12 gap-3 text-[11px] font-semibold text-[#a0a0a0]">
             <div className="col-span-1">Rank</div>
             <div className="col-span-4">Player</div>
             <div className="col-span-2 text-right">Points</div>
