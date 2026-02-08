@@ -51,14 +51,14 @@ export function LeagueStandings({ title = 'Live Standings', category = 'crypto' 
   const maxPoints = Math.max(...standings.map(s => s.points));
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-2xl font-bold text-[#e0e0e0] flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-[#facc15]" />
+          <h2 className="text-lg font-bold text-[#e0e0e0] flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[#facc15]" />
             {title}
           </h2>
-          <p className="text-xs text-[#707070] mt-1">
+          <p className="text-[11px] text-[#707070] mt-0.5">
             {category === 'crypto' && 'Top players in crypto predictions'}
             {category === 'sports' && 'Top players in sports predictions'}
             {category === 'news' && 'Top players in market sentiment'}
