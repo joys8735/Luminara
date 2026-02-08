@@ -191,7 +191,7 @@ class WebSocketService {
     this.simulationIntervals = [];
   }
 
-  reconnect() {
+  resetConnection() {
     this.isManuallyDisconnected = false;
     this.reconnectAttempts = 0;
     this.connect();
