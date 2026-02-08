@@ -2447,6 +2447,44 @@ export function Predictions() {
         </div>
       </div>
 
+      {/* LEAGUE & CHARTS SECTION */}
+      <div className="space-y-8 mt-12">
+        <div>
+          <h2 className="text-2xl font-bold ui-bg-text mb-6 flex items-center gap-3">
+            <Trophy className="w-6 h-6 text-[#facc15]" />
+            Competition & Analytics
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Leaderboard - 2 columns */}
+            <div className="lg:col-span-2">
+              <LeagueStandings
+                title="Predictions League"
+                category={category as "crypto" | "sports" | "news"}
+              />
+            </div>
+
+            {/* Charts - 1 column */}
+            <div>
+              <PredictionCharts
+                title="Your Performance"
+                height={250}
+                showWinLoss={true}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Charts */}
+        <div>
+          <PredictionCharts
+            title="Weekly Statistics"
+            height={320}
+            showWinLoss={true}
+          />
+        </div>
+      </div>
+
       {/* MODAL: Place Bet */}
       <AnimatePresence>
         {modalOpen && selectedPair && (
