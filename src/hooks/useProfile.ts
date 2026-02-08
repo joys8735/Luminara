@@ -554,12 +554,11 @@ export function useProfile() {
 
   // Функція для ручного оновлення профілю
   const refreshProfile = useCallback(async () => {
-    if (user) {
-      
+    if (user && isMounted.current) {
       profileLoadInProgress.current = false; // Force reset lock
       await loadProfile(user);
     }
-  }, [user, loadProfile]);
+  }, [user]);
 
   // Realtime subscription для миттєвих оновлень
   useEffect(() => {
