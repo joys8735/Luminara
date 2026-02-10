@@ -102,7 +102,7 @@ function Card({
   return (
     <div className="rounded-2xl ui-card overflow-hidden relative">
       <img
-        src="../icons/shape-4-1.png"
+        src="/icons/shape-4-1.png"
         className="opacity-35 absolute top-0 left-0"
         alt=""
       />

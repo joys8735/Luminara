@@ -733,7 +733,7 @@ export function VirtualCardShop() {
           <div className="ui-card grid grid-cols-1 md:grid-cols-[3.5fr_1fr] rounded-2xl p-5 relative overflow-hidden ">
             <div className="pointer-events-none absolute -inset-0.5 opacity-10 card-gradient-soft" />
             <img
-              src="public/77.png"
+              src="/77.png"
               className="absolute w-full h-full inset-0 opacity-80 object-cover"
               alt=""
             />

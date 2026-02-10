@@ -80,7 +80,7 @@ export default function InvestmentConfirmationModal({
               <div className="space-y-4">
                 {/* MIN INVEST */}
                 <div className="bg-[#1a1a1a]/70 relative border border-[#1f1f1f]/30 rounded-xl p-4">
-                <img src="../icons/shape-4-1.png" className="opacity-35 absolute top-0 left-5" alt="" />
+                <img src="/icons/shape-4-1.png" className="opacity-35 absolute top-0 left-5" alt="" />
                 <div className="pointer-events-none absolute -inset-0 rounded-2xl opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_65%)]" />
                   <div className="text-[11px] text-[#707070]">
                     Minimum Investment

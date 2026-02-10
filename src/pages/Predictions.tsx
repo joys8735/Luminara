@@ -1495,7 +1495,7 @@ export function Predictions() {
         <div className="ui-card  rounded-2xl p-5 relative overflow-hidden ">
           <div className="pointer-events-none absolute -inset-0.5 opacity-10 card-gradient-soft" />
           <img
-            src="public/back2.png"
+            src="/back2.png"
             className="absolute w-full h-full inset-0 opacity-80 object-cover"
             alt=""
           />
@@ -1650,7 +1650,7 @@ export function Predictions() {
           <div className="ui-card rounded-2xl h-[405px] p-5 relative overflow-hidden">
             {/* Фонове зображення */}
             <img
-              src="190c137499965073dc3c9156fc811536.jpg"
+              src="/190c137499965073dc3c9156fc811536.jpg"
               className="absolute inset-0 w-full h-full object-cover z-0 rounded-xl opacity-90"
               alt="background"
             />

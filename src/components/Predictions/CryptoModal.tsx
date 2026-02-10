@@ -112,7 +112,7 @@ export function CryptoModal({
             {/* LEFT: market snapshot */}
             <div className="space-y-2">
               <div className="ui-card relative rounded-2xl p-4 space-y-1 text-xs">
-                <img src="../icons/shape-4-1.png" className="opacity-35 absolute -top-3 left-0" alt="" />
+                <img src="/icons/shape-4-1.png" className="opacity-35 absolute -top-3 left-0" alt="" />
                 <div className="pointer-events-none absolute -inset-1 rounded-2xl opacity-10 bg-[radial-gradient(circle_at_top,_#3b82f6_0,_transparent_65%)]" />
                 
                 <div className="flex items-center justify-between">

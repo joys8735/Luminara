@@ -324,7 +324,7 @@ export function Sidebar() {
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-[150px] h-10 flex items-center justify-center overflow-hidden">
                   <img
-                    src="public/logo3.png"
+                    src="/logo3.png"
                     alt="SolanaVerse"
                     className="w-full h-full object-cover opacity-90"
                   />

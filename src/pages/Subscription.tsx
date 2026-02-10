@@ -554,7 +554,7 @@ const Subscription: React.FC = () => {
       {/* HERO */}
       <div className="ui-card backdrop-blur-sm rounded-2xl p-6 md:p-7 relative overflow-hidden">
         <div className="pointer-events-none absolute -inset-0.5 opacity-15 card-gradient-soft" />
-        <img src="back2.png" className="absolute top-0 left-0 w-full h-full object-cover" alt="" />
+        <img src="/back2.png" className="absolute top-0 left-0 w-full h-full object-cover" alt="" />
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-xl space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full ui-inner px-3 py-1 text-[11px] text-[#a0a0a0]">

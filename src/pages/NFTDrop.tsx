@@ -198,7 +198,7 @@ function MintStepsModal({
       <div className="w-full max-w-4xl lg:h-[80vh] h-[calc(100vh-2rem)] rounded-3xl ui-card shadow-2xl relative lg:overflow-hidden overflow-y-auto bottom-0 fixed">
         {/* glow */}
         <img
-          src="../icons/abstract-technology-background-concept.jpg"
+          src="/icons/abstract-technology-background-concept.jpg"
           className="opacity-15 absolute top-0 left-0"
           alt=""
         />
@@ -982,7 +982,7 @@ export function NFTDrop() {
       <div className=" w-[120vh] rounded-2xl p-5 md:p-6 relative overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-[3fr_1.2fr]pointer-events-none absolute -inset-0.5 opacity-10 card-gradient-soft" />
         <img
-          src="public/back2.png"
+          src="/back2.png"
           className="absolute w-full h-full inset-0 opacity-80 object-cover"
           alt=""
         />

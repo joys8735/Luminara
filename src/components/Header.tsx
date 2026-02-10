@@ -357,7 +357,7 @@ export function Header() {
               onClick={() => navigate('/token-sale')}
               className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-[var(--accent-blue)] bg-[var(--bg-card)] text-[var(--text-main)] transition-all duration-200 text-[11px] border border-[var(--border-light)]"
             >
-              <img src="../icons/usdt.png" alt="svt" className="w-4 h-4" />
+              <img src="/icons/usdt.png" alt="svt" className="w-4 h-4" />
               <span className="font-medium">Buy SVT</span>
             </button>
           </div>

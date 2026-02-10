@@ -23,7 +23,7 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
           <div className="flex items-center gap-3">
            
             <div>
-              <img src="public/logo.png" className="w-40" alt="" />
+              <img src="/logo.png" className="w-40" alt="" />
               
             </div>
           </div>

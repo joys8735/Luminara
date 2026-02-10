@@ -94,7 +94,7 @@ const Home: React.FC = () => {
   playsInline
   className="absolute inset-0 w-full h-full backdrop-blur-lg object-cover opacity-30"
 >
-  <source src="public/test1.mp4" type="video/mp4" />
+  <source src="/test1.mp4" type="video/mp4" />
   {/* Fallback якщо відео не завантажиться */}
   <img 
     src="/echo.png" 
@@ -103,13 +103,13 @@ const Home: React.FC = () => {
   />
 </video>
         <img
-          src="public/echo.png"
+          src="/echo.png"
           alt="Floating neon orb placeholder"
           className="absolute top-20 left-10 w-64 h-64 sm:w-96 sm:h-96 rounded-full blur-3xl opacity-40 animate-pulse-slow"
           style={parallax(0.15)}
         />
         <img
-          src="public/echo.png"
+          src="/echo.png"
           alt="Floating neon orb 2 placeholder"
           className="absolute bottom-20 right-10 w-80 h-80 sm:w-[500px] sm:h-[500px] rounded-full blur-3xl opacity-30 animate-pulse-slow delay-1000"
           style={parallax(0.08)}
@@ -219,7 +219,7 @@ const Home: React.FC = () => {
             {/* Pie Chart */}
             <div className="relative w-80 h-80 sm:w-96 sm:h-96 lg:w-[500px] lg:h-[500px]">
               <img
-                src="public/echo.png"
+                src="/echo.png"
                 alt="Tokenomics background placeholder"
                 className="absolute inset-0 w-full h-full object-contain opacity-20"
               />
