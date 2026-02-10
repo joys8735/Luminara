@@ -3,9 +3,9 @@
 import React, { useEffect, useRef } from 'react';
 
 interface TradingViewMiniChartProps {
-  symbol: string;           // наприклад, "BTCUSDT"
-  height?: number;          // тепер за замовчуванням 240px
-  interval?: string;        // '1', '5', '15' тощо
+  symbol: string;
+  height?: number;
+  interval?: string;
 }
 
 export function TradingViewMiniChart({
@@ -14,12 +14,18 @@ export function TradingViewMiniChart({
   interval = '5',
 }: TradingViewMiniChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
-  const createWidget = () => {
+  useEffect(() => {
     if (!containerRef.current) return;
 
     // Очищаємо попередній контент
     containerRef.current.innerHTML = '';
+
+    // Створюємо контейнер для віджета
+    const widgetContainer = document.createElement('div');
+    widgetContainer.className = 'tradingview-widget-container';
+    containerRef.current.appendChild(widgetContainer);
 
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
@@ -31,7 +37,7 @@ export function TradingViewMiniChart({
       width: '100%',
       height,
       locale: 'en',
-      dateRange: '5m',
+      dateRange: '1D',
       colorTheme: 'dark',
       trendLineColor: '#3b82f6',
       underLineColor: 'rgba(59, 130, 246, 0.12)',
@@ -39,35 +45,30 @@ export function TradingViewMiniChart({
       autosize: false,
       largeChartUrl: '',
       chartOnly: true,
-      noTimeScale: true,
+      noTimeScale: false,
       hideVolume: true,
       hideMarketStatus: true,
     };
 
     script.innerHTML = JSON.stringify(config);
-    containerRef.current.appendChild(script);
-  };
-
-  useEffect(() => {
-    createWidget();
-
-    // Оновлення кожні 30 секунд
-    const intervalId = setInterval(createWidget, 300000);
+    
+    // Додаємо скрипт до контейнера віджета
+    widgetContainer.appendChild(script);
+    scriptRef.current = script;
 
     return () => {
-      clearInterval(intervalId);
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
+      scriptRef.current = null;
     };
   }, [symbol, height, interval]);
 
   return (
     <div 
       ref={containerRef}
-      className="w-full rounded-lg overflow-hidden "
+      className="w-full rounded-lg overflow-hidden"
       style={{ height: `${height}px`, marginTop: '20px' }}
     />
-    
   );
 }

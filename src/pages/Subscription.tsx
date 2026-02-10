@@ -3,31 +3,23 @@ import { useWallet } from "../context/WalletContext";
 import { usePremium } from "../context/PremiumContext";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import PremiumFeaturesSection from "../components/PremiumFeaturesSection";
 import {
   Crown,
-  Sparkles,
   Stars,
-  Shield,
   Zap,
-  BarChart3,
   ArrowRight,
   CheckCircle2,
   AlertCircle,
   Clock,
-  LineChart,
-  Gift,
-  Wallet,
   X,
   Coins,
   Loader2,
   Settings,
-  DollarSign,
   PauseCircle,
   PlayCircle,
   TrendingUp,
-  Users,
   Key,
-  Building,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -849,281 +841,11 @@ const Subscription: React.FC = () => {
         )}
       </div>
 
-      {/* WHAT YOU GET */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="relative lg:col-span-2">
-          <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
-            <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#22c1c3_0,_transparent_65%)]" />
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#3b82f6]" />
-                  <h2 className="text-sm font-semibold text-[#e0e0e0]">
-                    Premium usage map
-                  </h2>
-                </div>
-                <span className="text-[11px] text-[#707070]">
-                  One subscription, multiple layers on top of your flow.
-                </span>
-              </div>
-
-              {/* Stats row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
-                <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <LineChart className="w-3.5 h-3.5 text-[#3b82f6]" />
-                      <span className="text-[#e0e0e0] font-semibold">
-                        Predictions layer
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-[#a0a0a0] text-xs">
-                    AI hints, risk zones and streak logic sit on top of your existing rounds.
-                  </p>
-                  <div className="flex items-center justify-between text-[10px] text-[#707070]">
-                    <span>Coverage</span>
-                    <span className="text-[#e0e0e0] font-semibold">
-                      {hasPremium ? "Per pair, per session" : "Preview only"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Gift className="w-3.5 h-3.5 text-[#facc15]" />
-                      <span className="text-[#e0e0e0] font-semibold">
-                        Rewards & quests
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-[#a0a0a0] text-xs">
-                    Multipliers, extra tickets and clearer windows for time-limited claims.
-                  </p>
-                  <div className="flex items-center justify-between text-[10px] text-[#707070]">
-                    <span>Effect</span>
-                    <span className="text-[#e0e0e0] font-semibold">
-                      {hasPremium ? "Higher output per action" : "Standard rewards"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="w-3.5 h-3.5 text-[#3b82f6]" />
-                      <span className="text-[#e0e0e0] font-semibold">
-                        Context layer
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-[#a0a0a0] text-xs">
-                    Wallet & yield view once balances and staking are fully wired to UI.
-                  </p>
-                  <div className="flex items-center justify-between text-[10px] text-[#707070]">
-                    <span>Status</span>
-                    <span className="text-[#e0e0e0] font-semibold">
-                      In design • coming later
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Usage bars */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-[#3b82f6]" />
-                      <span className="text-[13px] font-semibold text-[#e0e0e0]">
-                        Where Premium attaches
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-[#707070]">
-                      {hasPremium ? "Your current coverage" : "Preview of coverage"}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {[
-                      {
-                        label: "Predictions Arena",
-                        tag: "Live now",
-                        value: hasPremium ? 80 : 0,
-                        desc: "AI hints, risk score, streak tracking.",
-                      },
-                      {
-                        label: "Daily rewards & quests",
-                        tag: "Boosted",
-                        value: hasPremium ? 60 : 0,
-                        desc: "Extra tickets and multipliers on some quests.",
-                      },
-                      {
-                        label: "Staking & pools",
-                        tag: "Planned",
-                        value: 20,
-                        desc: "Pool suggestions & APY helpers on roadmap.",
-                      },
-                    ].map((row) => (
-                      <div key={row.label} className="space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#e0e0e0] font-medium">
-                              {row.label}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full border border-[#1f1f1f] bg-[#020617] text-[10px] text-[#a0a0a0]">
-                              {row.tag}
-                            </span>
-                          </div>
-                          <span className="text-[#a0a0a0]">
-                            {row.value}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-[#111827] overflow-hidden">
-                          <div
-                            className={`h-full bg-gradient-to-r from-[#22c1c3] via-[#3b82f6] to-[#a855f7] ${!hasPremium && row.label !== "Staking & pools"
-                                ? "opacity-40"
-                                : "opacity-90"
-                              }`}
-                            style={{ width: `${row.value}%` }}
-                          />
-                        </div>
-                        <div className="text-[10px] text-[#707070]">
-                          {row.desc}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-[#050816] border border-[#1f1f1f] rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Shield className="w-4 h-4 text-[#22c55e]" />
-                    <span className="text-[13px] font-semibold text-[#e0e0e0]">
-                      What Premium does (and doesn&apos;t) do
-                    </span>
-                  </div>
-
-                  <ul className="space-y-1.5 text-[#a0a0a0]">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#22c55e] mt-0.5" />
-                      <span className="text-[11px]">
-                        Helps you see risk, streaks and probability zones instead of guessing blindly.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#22c55e] mt-0.5" />
-                      <span className="text-[11px]">
-                        Adds multipliers and boosts in selected flows – it doesn&apos;t replace your decisions.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#22c55e] mt-0.5" />
-                      <span className="text-[11px]">
-                        No auto-trading, no promises of profit – just a smarter layer on top of what you already do.
-                      </span>
-                    </li>
-                  </ul>
-
-                  <div className="mt-2 rounded-lg bg-[#020617] border border-dashed border-[#1f1f1f] px-3 py-2 text-[10px] text-[#707070] flex items-start gap-2">
-                    <Clock className="w-3.5 h-3.5 mt-0.5 text-[#3b82f6]" />
-                    <p>
-                      {hasPremium
-                        ? `Your Premium status is verified on-chain for wallet ${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}.`
-                        : "Once you activate Premium, this block will adapt to your wallet and show where the extra logic is applied."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Premium modules */}
-        <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-5 relative overflow-hidden">
-          <div className="pointer-events-none absolute -inset-0.5 opacity-10 bg-[radial-gradient(circle_at_top,_#a855f7_0,_transparent_60%)]" />
-          <div className="relative z-10 space-y-4 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold text-[#e0e0e0]">
-                  Premium modules inside the app
-                </h2>
-              </div>
-              <span className="px-2 py-0.5 rounded-full border border-[#1f1f1f] bg-[#050816] text-[10px] text-[#a0a0a0]">
-                {hasPremium ? "Linked to your wallet" : "Preview mode"}
-              </span>
-            </div>
-
-            <p className="text-[11px] text-[#a0a0a0]">
-              See where your subscription adds extra logic – from predictions to rewards and, later, staking.
-            </p>
-
-            <div className="space-y-3">
-              {premiumDestinations.map((item) => (
-                <Link
-                  key={item.key}
-                  to={item.to}
-                  className="group block rounded-2xl border border-[#1f1f1f] bg-[#050816] overflow-hidden hover:border-[#3b82f6]/70 transition-all"
-                >
-                  <div className="relative w-full h-24 overflow-hidden">
-                    <img
-                      src={`/premium/${item.key}.png`}
-                      alt={item.title}
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                      onError={(e) => {
-                        e.currentTarget.src = "/premium/default.png";
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-                    <div className="absolute top-2 right-2 flex items-center gap-1">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] border ${hasPremium
-                            ? "bg-[#022c22] text-emerald-300 border-emerald-500/40"
-                            : "bg-[#111827] text-[#a0a0a0] border-[#1f1f1f]"
-                          }`}
-                      >
-                        {hasPremium ? "Unlocked for you" : "See what you get"}
-                      </span>
-                    </div>
-                    <div className="absolute inset-0 flex flex-col justify-end p-3">
-                      <div className="text-[10px] text-[#9ca3af]">
-                        {item.label}
-                      </div>
-                      <div className="text-[13px] font-semibold text-[#f9fafb]">
-                        {item.title}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="px-3 py-3 flex items-center justify-between gap-3">
-                    <p className="text-[10px] w-48 text-[#707070] line-clamp-2">
-                      {item.desc}
-                    </p>
-                    <div className="flex items-center gap-1 text-[11px]">
-                      <span
-                        className={
-                          hasPremium ? "text-[#3b82f6] font-medium " : "text-[#a0a0a0] "
-                        }
-                      >
-                        {hasPremium ? "Open module" : "Preview flow"}
-                      </span>
-                      <ArrowRight
-                        className={`w-3 h-3 transition-transform group-hover:translate-x-1 ${hasPremium ? "text-[#3b82f6]" : "text-[#707070]"
-                          }`}
-                      />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            <div className="pt-2 border-t border-[#1f1f1f] text-[10px] text-[#707070]">
-              You can always manage your subscription here and jump into upgraded modules in one click.
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* PREMIUM FEATURES SECTION */}
+      <PremiumFeaturesSection 
+        hasPremium={hasPremium} 
+        walletAddress={walletAddress}
+      />
 
       {/* PURCHASE MODAL */}
       <AnimatePresence>
