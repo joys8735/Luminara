@@ -8,7 +8,7 @@ import LandingLayout from "./layouts/LandingLayout";
 import { PremiumProvider } from "./context/PremiumContext";
 import FloatingPromo from '@/components/StickyImageBlock';
 import { AuthCallback } from "./components/AuthCallback";
-
+import { SpeedInsights } from "@vercel/speed-insights/react"
 // Lazy сторінки
 const Landing = lazy(() => import("./pages/Landing"));
 const Home = lazy(() => import("./pages/Home"));
@@ -97,6 +97,7 @@ export function App() {
                   },
                 }}
               />
+              <SpeedInsights/>
               <FloatingPromo />
             </PremiumProvider>
       </WalletProvider>
